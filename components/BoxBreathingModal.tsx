@@ -1,144 +1,204 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-type BoxBreathingModalProps = {
-  open: boolean;
+interface BoxBreathingProps {
   onClose: () => void;
-};
-
-const TOTAL_SECONDS = 16;
-const SIDE = 192;
-const PAD = 20;
-const X0 = PAD;
-const Y0 = SIDE - PAD;
-const X1 = PAD;
-const Y1 = PAD;
-const X2 = SIDE - PAD;
-const Y2 = PAD;
-const X3 = SIDE - PAD;
-const Y3 = SIDE - PAD;
-const THICK_STROKE = 16;
-const TRACK_D = `M ${X0} ${Y0} L ${X1} ${Y1} L ${X2} ${Y2} L ${X3} ${Y3} L ${X0} ${Y0}`;
-
-function getPhase(secondInCycle: number): "Inspire" | "Segure" | "Expire" {
-  if (secondInCycle < 4) return "Inspire";
-  if (secondInCycle < 8) return "Segure";
-  if (secondInCycle < 12) return "Expire";
-  return "Segure";
 }
 
-function phaseLine(
-  phaseIndex: number,
-  ratio: number
-): { x1: number; y1: number; x2: number; y2: number } {
-  if (phaseIndex === 0) {
-    return { x1: X0, y1: Y0, x2: X0, y2: Y0 - (Y0 - Y1) * ratio };
-  }
-  if (phaseIndex === 1) {
-    return { x1: X1, y1: Y1, x2: X1 + (X2 - X1) * ratio, y2: Y1 };
-  }
-  if (phaseIndex === 2) {
-    return { x1: X2, y1: Y2, x2: X2, y2: Y2 + (Y3 - Y2) * ratio };
-  }
-  return { x1: X3, y1: Y3, x2: X3 - (X3 - X0) * ratio, y2: Y3 };
-}
+const PHASES = ["inspire", "segure", "expire", "segure"];
+const PHASE_DURATION = 4000; // ms per phase
+const TOTAL_DURATION = PHASE_DURATION * 4;
 
-export function BoxBreathingModal({ open, onClose }: BoxBreathingModalProps) {
-  const [elapsedMs, setElapsedMs] = useState(0);
+const SIZE = 260;
+const STROKE = 22;
+const RADIUS = 44;
+const OFFSET = STROKE / 2;
+const W = SIZE - STROKE;
+const H = SIZE - STROKE;
+
+const STRAIGHT = (W - 2 * RADIUS) * 2 + (H - 2 * RADIUS) * 2;
+const CURVES = 2 * Math.PI * RADIUS;
+const PERIMETER = STRAIGHT + CURVES;
+
+export default function BoxBreathing({ onClose }: BoxBreathingProps) {
+  const [phaseIndex, setPhaseIndex] = useState(0);
+  const [counter, setCounter] = useState(1);
+  const traceRef = useRef<SVGRectElement>(null);
+  const startTimeRef = useRef<number | null>(null);
+  const rafRef = useRef<number>(0);
 
   useEffect(() => {
-    if (!open) return;
-    const startedAt = performance.now();
-    let frame = 0;
-    const tick = () => {
-      setElapsedMs(performance.now() - startedAt);
-      frame = window.requestAnimationFrame(tick);
+    startTimeRef.current = null;
+
+    const animate = (timestamp: number) => {
+      if (startTimeRef.current === null) {
+        startTimeRef.current = timestamp;
+      }
+
+      const elapsed = timestamp - startTimeRef.current;
+      const totalElapsed = elapsed % TOTAL_DURATION;
+      const progress = totalElapsed / TOTAL_DURATION;
+
+      // Update SVG trace
+      if (traceRef.current) {
+        const dashOffset = PERIMETER - progress * PERIMETER;
+        traceRef.current.style.strokeDashoffset = String(dashOffset);
+      }
+
+      // Current phase and counter
+      const currentPhase = Math.floor(totalElapsed / PHASE_DURATION);
+      const phaseElapsed = totalElapsed - currentPhase * PHASE_DURATION;
+      const currentCount = Math.floor(phaseElapsed / 1000) + 1;
+
+      setPhaseIndex(currentPhase);
+      setCounter(Math.min(currentCount, 4));
+
+      rafRef.current = requestAnimationFrame(animate);
     };
-    frame = window.requestAnimationFrame(tick);
-    return () => window.cancelAnimationFrame(frame);
-  }, [open]);
 
-  const secondInCycle = useMemo(
-    () => Math.floor(elapsedMs / 1000) % TOTAL_SECONDS,
-    [elapsedMs]
-  );
-  const msInCycle = elapsedMs % (TOTAL_SECONDS * 1000);
-  const phaseIndex = Math.floor(msInCycle / 4000);
-  const phaseProgress = (msInCycle % 4000) / 4000;
-  const phase = getPhase(secondInCycle);
-  const counter = (secondInCycle % 4) + 1;
-  const segment = phaseLine(phaseIndex, phaseProgress);
+    rafRef.current = requestAnimationFrame(animate);
 
-  if (!open) return null;
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
 
   return (
-    <>
-      <div className="fixed inset-0 z-[160] bg-[#3d3429]/35" onClick={onClose} aria-hidden />
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(0,0,0,0.45)",
+      }}
+    >
       <div
-        className="fixed inset-0 z-[170] grid place-items-center p-6"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Exercício de respiração quadrada"
+        style={{
+          background: "#FAF5F0",
+          borderRadius: 28,
+          padding: "36px 32px 28px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 24,
+          boxShadow: "0 8px 40px rgba(0,0,0,0.18)",
+          minWidth: 320,
+          position: "relative",
+        }}
       >
-        <div className="relative w-full max-w-md rounded-[30px] border border-ufie-border bg-ufie-surface px-6 pb-7 pt-6 shadow-[var(--shadow-ufie-float)]">
-          <button
-            type="button"
-            onClick={onClose}
-            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-ufie-muted transition hover:bg-ufie-bg hover:text-ufie-text focus:outline-none focus:ring-2 focus:ring-ufie-accent/70"
-            aria-label="Parar exercício"
+        {/* X button */}
+        <button
+          onClick={onClose}
+          style={{
+            position: "absolute",
+            top: 14,
+            right: 16,
+            background: "none",
+            border: "none",
+            fontSize: 22,
+            color: "#6B6B80",
+            cursor: "pointer",
+            lineHeight: 1,
+            padding: 4,
+          }}
+          aria-label="Fechar"
+        >
+          ×
+        </button>
+
+        {/* SVG — rotated -90deg so trace starts from left side going up */}
+        <svg
+          width={SIZE}
+          height={SIZE}
+          viewBox={`0 0 ${SIZE} ${SIZE}`}
+          style={{ overflow: "visible", transform: "rotate(-90deg)" }}
+        >
+          {/* Track */}
+          <rect
+            x={OFFSET}
+            y={OFFSET}
+            width={W}
+            height={H}
+            rx={RADIUS}
+            ry={RADIUS}
+            fill="none"
+            stroke="#C8C1E8"
+            strokeWidth={STROKE}
+            strokeOpacity={0.25}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+
+          {/* Animated trace */}
+          <rect
+            ref={traceRef}
+            x={OFFSET}
+            y={OFFSET}
+            width={W}
+            height={H}
+            rx={RADIUS}
+            ry={RADIUS}
+            fill="none"
+            stroke="#7B6FE8"
+            strokeWidth={STROKE}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeDasharray={PERIMETER}
+            style={{ strokeDashoffset: PERIMETER }}
+          />
+
+          {/* Counter — counter-rotated to stay upright */}
+          <text
+            x={SIZE / 2}
+            y={SIZE / 2 - 10}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fontSize={54}
+            fontWeight="bold"
+            fill="#1A1A2E"
+            fontFamily="Arial, sans-serif"
+            transform={`rotate(90, ${SIZE / 2}, ${SIZE / 2})`}
           >
-            ✕
-          </button>
+            {counter}
+          </text>
 
-          <div className="flex flex-col items-center">
-            <div className="relative h-60 w-60">
-              <svg viewBox={`0 0 ${SIDE} ${SIDE}`} className="h-full w-full">
-                <path
-                  d={TRACK_D}
-                  fill="none"
-                  stroke="color-mix(in srgb, var(--color-ufie-border) 75%, white)"
-                  strokeWidth={THICK_STROKE}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <line
-                  x1={segment.x1}
-                  y1={segment.y1}
-                  x2={segment.x2}
-                  y2={segment.y2}
-                  fill="none"
-                  stroke="var(--color-ufie-accent)"
-                  strokeWidth={THICK_STROKE}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+          {/* Phase label — counter-rotated */}
+          <text
+            x={SIZE / 2}
+            y={SIZE / 2 + 38}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fontSize={18}
+            fill="#6B6B80"
+            fontFamily="Arial, sans-serif"
+            transform={`rotate(90, ${SIZE / 2}, ${SIZE / 2})`}
+          >
+            {PHASES[phaseIndex]}
+          </text>
+        </svg>
 
-              <div className="absolute inset-0 grid place-items-center">
-                <span key={counter} className="text-5xl font-semibold text-ufie-text animate-[box-counter-pulse_1000ms_ease-in-out]">
-                  {counter}
-                </span>
-              </div>
-            </div>
-
-            <p
-              key={phase}
-              className="mt-2 text-base font-medium text-ufie-text animate-[fade-in_240ms_ease-out]"
-            >
-              {phase}
-            </p>
-            <button
-              type="button"
-              onClick={onClose}
-              className="mt-5 min-w-[8rem] rounded-[14px] bg-ufie-primary px-5 py-2.5 text-sm font-semibold text-white shadow-[var(--shadow-ufie-card)] transition hover:bg-ufie-text/90 focus:outline-none focus:ring-2 focus:ring-ufie-accent/70 focus:ring-offset-2 focus:ring-offset-ufie-surface"
-            >
-              Encerrar
-            </button>
-          </div>
-        </div>
+        {/* Encerrar button */}
+        <button
+          onClick={onClose}
+          style={{
+            background: "none",
+            border: "1.5px solid #C8C1E8",
+            borderRadius: 12,
+            padding: "10px 36px",
+            fontSize: 16,
+            color: "#6B6B80",
+            cursor: "pointer",
+            fontFamily: "Arial, sans-serif",
+            marginTop: 4,
+          }}
+        >
+          Encerrar
+        </button>
       </div>
-    </>
+    </div>
   );
 }
-

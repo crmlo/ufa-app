@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BoxBreathingModal } from "@/components/BoxBreathingModal";
+import BoxBreathing from "@/components/BoxBreathing";
 import {
   CONTENT_CATEGORIES,
   PLACEHOLDER_ARTICLES,
@@ -74,7 +74,7 @@ export function ConteudosTab() {
         );
       })}
     </div>
-    <BoxBreathingModal open={breathingOpen} onClose={() => setBreathingOpen(false)} />
+    <BoxBreathing open={breathingOpen} onClose={() => setBreathingOpen(false)} />
     </>
   );
 }

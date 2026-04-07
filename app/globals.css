@@ -172,6 +172,15 @@ body {
   }
 }
 
+@keyframes box-breathing-dash {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: calc(-1 * var(--box-perimeter, 1000));
+  }
+}
+
 .ufie-drawer-backdrop {
   animation: ufie-drawer-backdrop-in 0.28s ease-out forwards;
 }

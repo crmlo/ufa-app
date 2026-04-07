@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
 import { AutoEmergencyDrawer } from "@/components/AutoEmergencyDrawer";
-import { BoxBreathingModal } from "@/components/BoxBreathingModal";
+import BoxBreathing from "@/components/BoxBreathing";
 import { AppMainHeader, FloatingSosButton } from "@/components/AppMainHeader";
 import { BottomNav, type MainTabId } from "@/components/shell/BottomNav";
 import { ConteudosTab } from "@/components/shell/ConteudosTab";
@@ -999,7 +999,7 @@ export default function Home() {
           onClose={() => setAutoEmergency(null)}
         />
       )}
-      <BoxBreathingModal
+      <BoxBreathing
         open={boxBreathingOpen}
         onClose={() => setBoxBreathingOpen(false)}
       />
