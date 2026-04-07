@@ -8,7 +8,6 @@ import { BottomNav, type MainTabId } from "@/components/shell/BottomNav";
 import { ConteudosTab } from "@/components/shell/ConteudosTab";
 import { HistoricoTab } from "@/components/shell/HistoricoTab";
 import { HomeTab } from "@/components/shell/HomeTab";
-import { MinimalHeader } from "@/components/shell/MinimalHeader";
 import { PerfilTab } from "@/components/shell/PerfilTab";
 import type { EmergencyKind } from "@/lib/emergency";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
@@ -30,13 +29,22 @@ type Message = {
   opening?: boolean;
 };
 
+type InlineFeedbackPoll = {
+  id: string;
+  question: string;
+  selected: string[];
+  detail: string;
+  submitting: boolean;
+  submitted: boolean;
+};
+
 const OPENING_APOIO =
   "Oi! Estou aqui pra gente conversar agora. Me conta como você está? Pode contar com calma, sou toda ouvidos.";
 
 const OPENING_SOCORRO =
   "Estou com você agora. O que você está sentindo?";
 
-/** Mesma pergunta da Ufie — título do drawer */
+/** Mesma pergunta da Olie — título do drawer */
 const SOCORRO_DRAWER_TITLE = "O que você está sentindo?";
 
 const OPENING_SOCORRO_OPTIONS = [
@@ -101,32 +109,6 @@ function buildSocorroDrawerMessage(
   return lines.join("\n");
 }
 
-/** Quick replies exatamente Sim + Não (ordem livre) — abre o drawer dedicado no modo Socorro */
-function isSimNaoQuickReplies(qr: string[] | null | undefined): boolean {
-  if (!qr || qr.length !== 2) return false;
-  const norm = (s: string) =>
-    s
-      .trim()
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/\p{M}/gu, "");
-  const a = norm(qr[0]);
-  const b = norm(qr[1]);
-  return (
-    (a === "sim" || b === "sim") && (a === "nao" || b === "nao")
-  );
-}
-
-/** Sim/Não imediato; se houver texto livre, combina no mesmo envio */
-function buildYesNoWithOptionalFree(
-  choice: "Sim" | "Não",
-  freeText: string
-): string {
-  const ft = freeText.trim();
-  if (ft) return `${choice}\n\nTambém quis dizer: ${ft}`;
-  return choice;
-}
-
 export default function Home() {
   const [mode, setMode] = useState<ChatMode | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -141,17 +123,9 @@ export default function Home() {
   const [socorroSelected, setSocorroSelected] = useState<string[]>([]);
   const [socorroDrawerFreeText, setSocorroDrawerFreeText] = useState("");
 
-  /** Drawer Sim/Não após resposta da API (pergunta = texto da Ufie) */
-  const [socorroYesNoDrawer, setSocorroYesNoDrawer] = useState<{
-    question: string;
-  } | null>(null);
-  const [socorroYnFreeText, setSocorroYnFreeText] = useState("");
-
-  const [postCrisisFeedbackDrawer, setPostCrisisFeedbackDrawer] = useState<{
-    question: string;
-  } | null>(null);
-  const [feedbackSelected, setFeedbackSelected] = useState<string[]>([]);
-  const [feedbackFreeText, setFeedbackFreeText] = useState("");
+  const [inlineFeedbackPoll, setInlineFeedbackPoll] =
+    useState<InlineFeedbackPoll | null>(null);
+  const [modePickerDrawerOpen, setModePickerDrawerOpen] = useState(false);
 
   const [sosDrawerOpen, setSosDrawerOpen] = useState(false);
 
@@ -160,7 +134,7 @@ export default function Home() {
     null
   );
 
-  /** Ufie encerrou a conversa (despedida); mostra "Voltar para o início" */
+  /** Olie encerrou a conversa (despedida); mostra "Voltar para o início" */
   const [conversationEnded, setConversationEnded] = useState(false);
 
   const [onboardingReady, setOnboardingReady] = useState(false);
@@ -172,11 +146,11 @@ export default function Home() {
   /** E-mail do usuário logado (aba Perfil) */
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
-  /** Aba inferior no shell principal (fora do fluxo Ufie em tela cheia) */
+  /** Aba inferior no shell principal (fora do fluxo Olie em tela cheia) */
   const [mainTab, setMainTab] = useState<MainTabId>("home");
 
-  /** true = seleção de modo ou fluxo Ufie; false = shell com navbar */
-  const [ufieFlowOpen, setUfieFlowOpen] = useState(false);
+  /** true = fluxo Olie em tela cheia; false = shell com navbar */
+  const [olieFlowOpen, setOlieFlowOpen] = useState(false);
 
   const chatInputRef = useRef<HTMLInputElement>(null);
   const socorroDrawerPanY = useRef<number | null>(null);
@@ -210,8 +184,7 @@ export default function Home() {
   const lockBodyScroll =
     !!autoEmergency ||
     socorroInitialDrawer ||
-    !!socorroYesNoDrawer ||
-    !!postCrisisFeedbackDrawer ||
+    modePickerDrawerOpen ||
     sosDrawerOpen;
 
   useEffect(() => {
@@ -276,14 +249,14 @@ export default function Home() {
     void refreshDisplayName();
   }, [onboardingReady, onboardingComplete, refreshDisplayName]);
 
-  function resetUfieChatState() {
+  function resetOlieChatState() {
     setMode(null);
     setSessionId(null);
     setMessages([]);
     setConversationEnded(false);
     setSocorroInitialDrawer(false);
-    setSocorroYesNoDrawer(null);
-    setPostCrisisFeedbackDrawer(null);
+    setModePickerDrawerOpen(false);
+    setInlineFeedbackPoll(null);
     setSosDrawerOpen(false);
     setAutoEmergency(null);
     setQuickReplies(null);
@@ -291,21 +264,12 @@ export default function Home() {
     setError(null);
     setSocorroSelected([]);
     setSocorroDrawerFreeText("");
-    setSocorroYnFreeText("");
-    setFeedbackSelected([]);
-    setFeedbackFreeText("");
   }
 
-  /** Volta à seleção Apoio/Socorro (timeline limpa) dentro do fluxo Ufie */
+  /** Volta ao shell e limpa o fluxo da Olie */
   function goToModeSelection() {
-    resetUfieChatState();
-    setUfieFlowOpen(true);
-  }
-
-  /** Sai do fluxo Ufie e volta ao shell com navbar */
-  function exitUfieToShell() {
-    resetUfieChatState();
-    setUfieFlowOpen(false);
+    resetOlieChatState();
+    setOlieFlowOpen(false);
   }
 
   async function handleSignOut() {
@@ -324,11 +288,8 @@ export default function Home() {
     setConversationEnded(false);
     setSocorroSelected([]);
     setSocorroDrawerFreeText("");
-    setSocorroYesNoDrawer(null);
-    setSocorroYnFreeText("");
-    setPostCrisisFeedbackDrawer(null);
-    setFeedbackSelected([]);
-    setFeedbackFreeText("");
+    setInlineFeedbackPoll(null);
+    setModePickerDrawerOpen(false);
     setSocorroInitialDrawer(next === "socorro");
     setAutoEmergency(null);
     setMessages([
@@ -363,47 +324,21 @@ export default function Home() {
   const canSubmitSocorroDrawer =
     socorroSelected.length > 0 || socorroDrawerFreeText.trim().length > 0;
 
-  const ynFreeTextFilled = socorroYnFreeText.trim().length > 0;
-
-  function handleYnImmediate(choice: "Sim" | "Não") {
-    if (pending || !sessionId || !mode) return;
-    const text = buildYesNoWithOptionalFree(choice, socorroYnFreeText);
-    setSocorroYesNoDrawer(null);
-    setSocorroYnFreeText("");
-    void sendUserMessage(text);
-  }
-
-  function handleYnFreeTextOnlySubmit() {
-    const ft = socorroYnFreeText.trim();
-    if (!ft || pending || !sessionId || !mode) return;
-    setSocorroYesNoDrawer(null);
-    setSocorroYnFreeText("");
-    void sendUserMessage(ft);
-  }
-
-  function toggleFeedbackOption(label: string) {
-    setFeedbackSelected((prev) =>
-      prev.includes(label) ? prev.filter((x) => x !== label) : [...prev, label]
-    );
-  }
-
   async function submitPostCrisisFeedback() {
-    const detail = feedbackFreeText.trim();
-    if (
-      (feedbackSelected.length === 0 && !detail) ||
-      !sessionId ||
-      !postCrisisFeedbackDrawer
-    ) {
-      return;
-    }
+    if (!sessionId || !inlineFeedbackPoll || inlineFeedbackPoll.submitted) return;
+    const detail = inlineFeedbackPoll.detail.trim();
+    if (inlineFeedbackPoll.selected.length === 0 && !detail) return;
     setError(null);
+    setInlineFeedbackPoll((prev) =>
+      prev ? { ...prev, submitting: true } : prev
+    );
     try {
       const res = await fetch("/api/conversations/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           session_id: sessionId,
-          selected: feedbackSelected,
+          selected: inlineFeedbackPoll.selected,
           ...(detail ? { detail } : {}),
         }),
       });
@@ -415,15 +350,36 @@ export default function Home() {
       const msg =
         err instanceof Error ? err.message : "Não foi possível enviar o feedback.";
       setError(msg);
+      setInlineFeedbackPoll((prev) =>
+        prev ? { ...prev, submitting: false } : prev
+      );
       return;
     }
-    setPostCrisisFeedbackDrawer(null);
-    setFeedbackSelected([]);
-    setFeedbackFreeText("");
+    setInlineFeedbackPoll((prev) =>
+      prev ? { ...prev, submitting: false, submitted: true } : prev
+    );
   }
 
-  const canSubmitFeedback =
-    feedbackSelected.length > 0 || feedbackFreeText.trim().length > 0;
+  function toggleFeedbackOption(label: string) {
+    setInlineFeedbackPoll((prev) => {
+      if (!prev || prev.submitted) return prev;
+      const selected = prev.selected.includes(label)
+        ? prev.selected.filter((x) => x !== label)
+        : [...prev.selected, label];
+      return { ...prev, selected };
+    });
+  }
+
+  function updateFeedbackDetail(detail: string) {
+    setInlineFeedbackPoll((prev) =>
+      prev && !prev.submitted ? { ...prev, detail } : prev
+    );
+  }
+
+  const canSubmitFeedback = inlineFeedbackPoll
+    ? inlineFeedbackPoll.selected.length > 0 ||
+      inlineFeedbackPoll.detail.trim().length > 0
+    : false;
 
   async function sendUserMessage(text: string) {
     const trimmed = text.trim();
@@ -431,9 +387,7 @@ export default function Home() {
 
     setAutoEmergency(null);
     setConversationEnded(false);
-    setSocorroYesNoDrawer(null);
-    setSocorroYnFreeText("");
-    setPostCrisisFeedbackDrawer(null);
+    setInlineFeedbackPoll((prev) => (prev && prev.submitted ? prev : null));
     setQuickReplies(null);
 
     const userMsg: Message = {
@@ -486,7 +440,7 @@ export default function Home() {
         throw new Error(data.error ?? `Erro ${res.status}`);
       }
       if (!data.reply?.trim()) {
-        throw new Error("Resposta vazia da Ufie.");
+        throw new Error("Resposta vazia da Olie.");
       }
 
       const assistantMsg: Message = {
@@ -505,36 +459,24 @@ export default function Home() {
         setAutoEmergency(em);
         setConversationEnded(false);
         setSocorroInitialDrawer(false);
-        setSocorroYesNoDrawer(null);
-        setSocorroYnFreeText("");
-        setPostCrisisFeedbackDrawer(null);
+        setInlineFeedbackPoll((prev) => (prev && prev.submitted ? prev : null));
         setSosDrawerOpen(false);
         setQuickReplies(null);
       } else if (data.conversation_end) {
         setConversationEnded(true);
-        setSocorroInitialDrawer(false);
-        setSocorroYesNoDrawer(null);
-        setSocorroYnFreeText("");
-        setPostCrisisFeedbackDrawer(null);
-        setQuickReplies(null);
       } else if (data.feedback_prompt && mode === "socorro") {
         setConversationEnded(false);
-        setPostCrisisFeedbackDrawer({ question: data.reply!.trim() });
-        setFeedbackSelected([]);
-        setFeedbackFreeText("");
-        setSocorroYesNoDrawer(null);
-        setQuickReplies(null);
-      } else if (
-        mode === "socorro" &&
-        isSimNaoQuickReplies(qr ?? undefined)
-      ) {
-        setConversationEnded(false);
-        setSocorroYesNoDrawer({ question: data.reply!.trim() });
-        setSocorroYnFreeText("");
+        setInlineFeedbackPoll({
+          id: crypto.randomUUID(),
+          question: data.reply!.trim(),
+          selected: [],
+          detail: "",
+          submitting: false,
+          submitted: false,
+        });
         setQuickReplies(null);
       } else {
         setConversationEnded(false);
-        setSocorroYesNoDrawer(null);
         setQuickReplies(Array.isArray(qr) && qr.length > 0 ? qr : null);
       }
     } catch (err) {
@@ -551,12 +493,7 @@ export default function Home() {
     void sendUserMessage(draft);
   }
 
-  const showChatForm = !(
-    (mode === "socorro" &&
-      (socorroInitialDrawer || socorroYesNoDrawer || postCrisisFeedbackDrawer)) ||
-    autoEmergency ||
-    conversationEnded
-  );
+  const showChatForm = true;
 
   const sosDrawerPortal = sosDrawerOpen ? (
         <>
@@ -654,7 +591,7 @@ export default function Home() {
     );
   }
 
-  if (mode === null && !ufieFlowOpen) {
+  if (mode === null && !olieFlowOpen) {
     return (
       <>
         <FloatingSosButton onOpenSos={() => setSosDrawerOpen(true)} />
@@ -664,7 +601,7 @@ export default function Home() {
             {mainTab === "home" && (
               <HomeTab
                 displayName={displayName}
-                onOpenUfie={goToModeSelection}
+                onOpenOlie={() => setModePickerDrawerOpen(true)}
               />
             )}
             {mainTab === "conteudos" && <ConteudosTab />}
@@ -680,69 +617,72 @@ export default function Home() {
           <BottomNav
             active={mainTab}
             onChange={setMainTab}
-            onUfiePress={goToModeSelection}
+            onOliePress={() => setModePickerDrawerOpen(true)}
           />
         </div>
+        {modePickerDrawerOpen && (
+          <>
+            <div
+              className="ufie-drawer-backdrop fixed inset-0 z-40 bg-[#3d3429]/25"
+              aria-hidden
+              onClick={() => setModePickerDrawerOpen(false)}
+            />
+            <div
+              className="ufie-drawer-sheet fixed bottom-0 left-0 right-0 z-50 flex max-h-[min(88vh,520px)] flex-col rounded-t-3xl border border-ufie-border border-b-0 bg-ufie-surface shadow-[var(--shadow-ufie-float)]"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="mode-picker-title"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex shrink-0 flex-col items-center pt-3 pb-1">
+                <div className="h-1.5 w-11 rounded-full bg-ufie-accent/50" aria-hidden />
+              </div>
+              <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+                <h2 id="mode-picker-title" className="text-lg font-semibold text-ufie-text">
+                  Como você quer começar agora?
+                </h2>
+                <div className="mt-4 flex flex-col gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOlieFlowOpen(true);
+                      selectMode("apoio");
+                    }}
+                    className="w-full rounded-2xl border border-ufie-border bg-ufie-bg px-4 py-4 text-left text-ufie-text transition hover:border-ufie-accent/60"
+                  >
+                    <p className="text-sm font-semibold">Quero conversar</p>
+                    <p className="text-xs text-ufie-muted">Abrir chat em modo apoio</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOlieFlowOpen(true);
+                      selectMode("socorro");
+                    }}
+                    className="w-full rounded-2xl border border-ufie-accent/50 bg-ufie-bg px-4 py-4 text-left text-ufie-text transition hover:border-ufie-accent"
+                  >
+                    <p className="text-sm font-semibold">Estou em crise</p>
+                    <p className="text-xs text-ufie-muted">Abrir chat e mostrar sintomas agora</p>
+                  </button>
+                </div>
+              </div>
+              <div className="shrink-0 border-t border-ufie-border bg-ufie-surface px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
+                <button
+                  type="button"
+                  onClick={() => setModePickerDrawerOpen(false)}
+                  className="w-full rounded-xl border border-ufie-border py-2.5 text-sm text-ufie-muted"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </>
     );
   }
 
-  if (mode === null && ufieFlowOpen) {
-    return (
-      <>
-        {sosDrawerPortal}
-        <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800">
-          <MinimalHeader
-            onBack={exitUfieToShell}
-            onOpenSos={() => setSosDrawerOpen(true)}
-          />
-
-          <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 px-6 pb-12 pt-4">
-            <p className="rounded-2xl border border-blue-100/90 bg-blue-50/50 px-4 py-3 text-center text-[12px] leading-relaxed text-slate-600">
-              A Ufie oferece apoio por conversa, mas{" "}
-              <strong className="font-medium text-slate-700">
-                não substitui avaliação, diagnóstico ou tratamento com
-                profissionais de saúde
-              </strong>
-              . Em emergência, procure serviços de saúde ou use o SOS.
-            </p>
-
-            <button
-              type="button"
-              onClick={() => selectMode("apoio")}
-              className="group flex w-full flex-col items-start gap-1 rounded-2xl border border-blue-200 bg-gradient-to-br from-white to-blue-100/80 px-6 py-5 text-left shadow-[0_2px_12px_rgba(30,58,138,0.08)] ring-1 ring-blue-100/70 transition hover:border-blue-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-300/70 active:scale-[0.99]"
-            >
-              <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
-                Apoio
-              </span>
-              <span className="text-lg font-semibold text-slate-800">
-                Preciso conversar
-              </span>
-              <span className="text-sm leading-snug text-slate-500">
-                Vamos conversar com tempo, sem pressa.
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => selectMode("socorro")}
-              className="group flex w-full flex-col items-start gap-1 rounded-2xl border-2 border-blue-400/50 bg-gradient-to-br from-blue-50 via-white to-blue-50/90 px-6 py-5 text-left shadow-[0_4px_20px_rgba(30,64,175,0.12)] ring-2 ring-blue-300/30 transition hover:border-blue-500/60 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400/50 active:scale-[0.99]"
-            >
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-900">
-                Ajuda imediata
-              </span>
-              <span className="text-lg font-semibold text-blue-950">
-                Estou em crise
-              </span>
-              <span className="text-sm leading-snug text-blue-900/90">
-                Vou te ajudar agora mesmo! Clique para começar.
-              </span>
-            </button>
-          </main>
-        </div>
-      </>
-    );
-  }
+  if (mode === null && olieFlowOpen) return null;
 
   if (!mode) {
     return null;
@@ -790,19 +730,69 @@ export default function Home() {
               </div>
             </div>
           ))}
+          {inlineFeedbackPoll && (
+            <div className="flex justify-start">
+              <div className="w-full max-w-[92%] rounded-2xl border border-ufie-border bg-ufie-surface p-3">
+                <p className="text-[15px] leading-relaxed text-ufie-text">
+                  {inlineFeedbackPoll.question}
+                </p>
+                {!inlineFeedbackPoll.submitted && (
+                  <>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {POST_CRISIS_FEEDBACK_OPTIONS.map((label) => {
+                        const selected = inlineFeedbackPoll.selected.includes(label);
+                        return (
+                          <button
+                            key={label}
+                            type="button"
+                            onClick={() => toggleFeedbackOption(label)}
+                            className={`rounded-full border px-3 py-1.5 text-xs transition ${
+                              selected
+                                ? "border-ufie-accent bg-ufie-accent/20 text-ufie-text"
+                                : "border-ufie-border bg-ufie-bg text-ufie-muted"
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <input
+                      type="text"
+                      value={inlineFeedbackPoll.detail}
+                      onChange={(e) => updateFeedbackDetail(e.target.value)}
+                      placeholder="Se quiser detalhar..."
+                      className="mt-3 w-full rounded-xl border border-ufie-border bg-ufie-bg px-3 py-2 text-sm text-ufie-text focus:outline-none focus:ring-2 focus:ring-ufie-accent/70"
+                    />
+                    <button
+                      type="button"
+                      disabled={!canSubmitFeedback || inlineFeedbackPoll.submitting}
+                      onClick={() => void submitPostCrisisFeedback()}
+                      className="mt-3 rounded-xl bg-ufie-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-45"
+                    >
+                      {inlineFeedbackPoll.submitting ? "Enviando..." : "Enviar feedback"}
+                    </button>
+                  </>
+                )}
+                {inlineFeedbackPoll.submitted && (
+                  <p className="mt-2 text-xs text-ufie-muted">Feedback enviado. Obrigada por me contar.</p>
+                )}
+              </div>
+            </div>
+          )}
           {pending && (
             <div className="flex justify-start py-1">
               <div
                 className="ufie-presence"
                 aria-hidden
-                title="Ufie está aqui"
+                title="Olie está aqui"
               >
                 <div className="ufie-presence__halo" />
                 <div className="ufie-presence__core">
                   <div className="ufie-presence__glow" />
                 </div>
               </div>
-              <span className="sr-only">Ufie está respondendo</span>
+              <span className="sr-only">Olie está respondendo</span>
             </div>
           )}
         </div>
@@ -831,8 +821,7 @@ export default function Home() {
         {quickReplies &&
           quickReplies.length > 0 &&
           !pending &&
-          showChatForm &&
-          !socorroYesNoDrawer && (
+          showChatForm && (
             <div className="mt-3 space-y-2">
               <div
                 className="flex flex-wrap gap-2"
@@ -873,12 +862,10 @@ export default function Home() {
               }}
               placeholder="Escreva sua mensagem…"
               autoComplete="off"
-              disabled={pending}
               className="min-h-12 flex-1 rounded-xl border-0 bg-transparent px-3 text-[15px] text-slate-800 placeholder:text-[#b0a090] focus:outline-none focus:ring-2 focus:ring-blue-200/80 disabled:opacity-60"
             />
             <button
               type="submit"
-              disabled={pending}
               className="shrink-0 rounded-xl bg-blue-500 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-slate-50 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
             >
               {pending ? "…" : "Enviar"}
@@ -981,158 +968,6 @@ export default function Home() {
                 type="button"
                 disabled={!canSubmitSocorroDrawer || pending}
                 onClick={handleSocorroDrawerSubmit}
-                className="flex min-h-[3rem] w-full items-center justify-center rounded-2xl bg-blue-500 text-[15px] font-semibold text-white shadow-md transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-white disabled:pointer-events-none disabled:opacity-45"
-              >
-                Enviar
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Drawer Sim/Não — quick replies da API no modo Socorro */}
-      {mode === "socorro" && socorroYesNoDrawer && !autoEmergency && (
-        <>
-          <div
-            className="ufie-drawer-backdrop fixed inset-0 z-40 bg-[#3d3429]/25"
-            aria-hidden
-          />
-          <div
-            className="ufie-drawer-sheet fixed bottom-0 left-0 right-0 z-50 flex max-h-[min(88vh,640px)] flex-col rounded-t-3xl border border-blue-100 border-b-0 bg-white shadow-[0_-12px_48px_rgba(60,40,20,0.14)]"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="socorro-yn-drawer-heading"
-          >
-            <div className="flex shrink-0 flex-col items-center pt-3 pb-1">
-              <div
-                className="h-1.5 w-11 rounded-full bg-blue-200/70"
-                aria-hidden
-              />
-            </div>
-
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-2">
-              <h2
-                id="socorro-yn-drawer-heading"
-                className="text-lg font-semibold leading-snug text-slate-800"
-              >
-                {socorroYesNoDrawer.question}
-              </h2>
-
-              <div className="mt-5 flex flex-col gap-2.5" role="group">
-                {(["Sim", "Não"] as const).map((label) => (
-                  <button
-                    key={label}
-                    type="button"
-                    disabled={pending}
-                    onClick={() => handleYnImmediate(label)}
-                    className="w-full min-h-[3.25rem] rounded-2xl border border-blue-200 bg-white px-4 py-3 text-center text-[15px] font-medium leading-snug text-slate-800 shadow-sm transition hover:border-blue-300/60 focus:outline-none focus:ring-2 focus:ring-blue-300/70 active:scale-[0.99] disabled:opacity-50"
-                  >
-                    {label}
-                  </button>
-                ))}
-
-                <div className="pt-1">
-                  <label htmlFor="socorro-yn-free" className="sr-only">
-                    Se preferir, escreva com suas palavras
-                  </label>
-                  <input
-                    id="socorro-yn-free"
-                    type="text"
-                    value={socorroYnFreeText}
-                    onChange={(e) => setSocorroYnFreeText(e.target.value)}
-                    placeholder="Se preferir, escreva aqui"
-                    autoComplete="off"
-                    className="w-full min-h-[3.25rem] rounded-2xl border border-blue-200 bg-white px-4 py-3 text-[15px] text-slate-800 shadow-sm placeholder:text-[#b0a090] focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300/60"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {ynFreeTextFilled && (
-              <div className="shrink-0 border-t border-blue-100 bg-white px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
-                <button
-                  type="button"
-                  disabled={pending}
-                  onClick={handleYnFreeTextOnlySubmit}
-                  className="flex min-h-[3rem] w-full items-center justify-center rounded-2xl bg-blue-500 text-[15px] font-semibold text-white shadow-md transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-white disabled:pointer-events-none disabled:opacity-45"
-                >
-                  Enviar
-                </button>
-              </div>
-            )}
-          </div>
-        </>
-      )}
-
-      {/* Feedback pós-crise — modo Socorro */}
-      {mode === "socorro" && postCrisisFeedbackDrawer && !autoEmergency && (
-        <>
-          <div
-            className="ufie-drawer-backdrop fixed inset-0 z-40 bg-[#3d3429]/25"
-            aria-hidden
-          />
-          <div
-            className="ufie-drawer-sheet fixed bottom-0 left-0 right-0 z-50 flex max-h-[min(88vh,640px)] flex-col rounded-t-3xl border border-blue-100 border-b-0 bg-white shadow-[0_-12px_48px_rgba(60,40,20,0.14)]"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="feedback-drawer-heading"
-          >
-            <div className="flex shrink-0 flex-col items-center pt-3 pb-1">
-              <div
-                className="h-1.5 w-11 rounded-full bg-blue-200/70"
-                aria-hidden
-              />
-            </div>
-
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-2">
-              <h2
-                id="feedback-drawer-heading"
-                className="text-lg font-semibold leading-snug text-slate-800"
-              >
-                {postCrisisFeedbackDrawer.question}
-              </h2>
-
-              <div className="mt-5 flex flex-col gap-2.5" role="group">
-                {POST_CRISIS_FEEDBACK_OPTIONS.map((label) => {
-                  const selected = feedbackSelected.includes(label);
-                  return (
-                    <button
-                      key={label}
-                      type="button"
-                      onClick={() => toggleFeedbackOption(label)}
-                      className={`w-full min-h-[3.25rem] rounded-2xl border px-4 py-3 text-left text-[15px] leading-snug transition focus:outline-none focus:ring-2 focus:ring-blue-300/70 active:scale-[0.99] ${
-                        selected
-                          ? "border-blue-400/70 bg-blue-100/90 text-slate-800 ring-2 ring-blue-200/50 shadow-sm"
-                          : "border-blue-200 bg-white text-slate-800 shadow-sm hover:border-blue-300/60"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-
-                <div className="pt-1">
-                  <label htmlFor="feedback-free" className="sr-only">
-                    Detalhar feedback
-                  </label>
-                  <input
-                    id="feedback-free"
-                    type="text"
-                    value={feedbackFreeText}
-                    onChange={(e) => setFeedbackFreeText(e.target.value)}
-                    placeholder="Se quiser detalhar..."
-                    autoComplete="off"
-                    className="w-full min-h-[3.25rem] rounded-2xl border border-blue-200 bg-white px-4 py-3 text-[15px] text-slate-800 shadow-sm placeholder:text-[#b0a090] focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300/60"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="shrink-0 border-t border-blue-100 bg-white px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
-              <button
-                type="button"
-                disabled={!canSubmitFeedback || pending}
-                onClick={() => void submitPostCrisisFeedback()}
                 className="flex min-h-[3rem] w-full items-center justify-center rounded-2xl bg-blue-500 text-[15px] font-semibold text-white shadow-md transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-white disabled:pointer-events-none disabled:opacity-45"
               >
                 Enviar

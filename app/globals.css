@@ -16,7 +16,7 @@ body {
   color: var(--foreground);
 }
 
-/* Presença da Ufie — respiração orgânica (sem libs) */
+/* Presença da Olie — respiração orgânica (sem libs) */
 @keyframes ufie-presence-breathe {
   0%,
   100% {

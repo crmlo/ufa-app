@@ -6,7 +6,7 @@ type Props = {
   backLabel?: string;
 };
 
-/** Barra superior só com voltar + SOS — tela de seleção de modo Ufie */
+/** Barra superior só com voltar + SOS — tela de seleção de modo Olie */
 export function MinimalHeader({
   onBack,
   onOpenSos,

@@ -5,10 +5,10 @@ export type MainTabId = "home" | "conteudos" | "historico" | "perfil";
 type Props = {
   active: MainTabId;
   onChange: (tab: MainTabId) => void;
-  onUfiePress: () => void;
+  onOliePress: () => void;
 };
 
-export function BottomNav({ active, onChange, onUfiePress }: Props) {
+export function BottomNav({ active, onChange, onOliePress }: Props) {
   const itemClass = (tab: MainTabId) =>
     `flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium transition ${
       active === tab
@@ -49,14 +49,14 @@ export function BottomNav({ active, onChange, onUfiePress }: Props) {
         <div className="relative flex flex-1 flex-col items-center px-1 pb-1">
           <button
             type="button"
-            onClick={onUfiePress}
+            onClick={onOliePress}
             className="-mt-7 flex h-[3.35rem] w-[3.35rem] shrink-0 items-center justify-center rounded-full bg-blue-500 text-xl shadow-[0_6px_20px_rgba(37,99,235,0.45)] ring-4 ring-white transition hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-200 active:scale-[0.98]"
-            aria-label="Falar com a Ufie"
+            aria-label="Falar com a Olie"
           >
             <span aria-hidden>💬</span>
           </button>
           <span className="mt-1 text-[10px] font-semibold text-blue-600">
-            Ufie
+            Olie
           </span>
         </div>
 

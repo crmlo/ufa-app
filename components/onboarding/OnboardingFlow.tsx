@@ -403,7 +403,7 @@ export function OnboardingFlow({ onComplete }: Props) {
           <div className="flex flex-1 flex-col justify-center gap-8">
             <div className="space-y-4 text-left">
               <p className="text-2xl font-semibold leading-snug text-slate-800">
-                Oi! Eu sou a Ufie 💛
+                Oi! Eu sou a Olie 💛
               </p>
               <p className="text-[15px] leading-relaxed text-slate-800">
                 Eu vou estar aqui com você sempre que precisar, nos momentos
