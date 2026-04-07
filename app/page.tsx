@@ -628,17 +628,17 @@ export default function Home() {
               onClick={() => setModePickerDrawerOpen(false)}
             />
             <div
-              className="ufie-drawer-sheet fixed bottom-0 left-0 right-0 z-50 flex max-h-[min(88vh,520px)] flex-col rounded-t-3xl border border-ufie-border border-b-0 bg-ufie-surface shadow-[var(--shadow-ufie-float)]"
+              className="ufie-drawer-sheet fixed bottom-0 left-0 right-0 z-50 flex max-h-[min(88vh,520px)] flex-col rounded-t-3xl border border-blue-100 border-b-0 bg-white shadow-[0_-12px_48px_rgba(60,40,20,0.14)]"
               role="dialog"
               aria-modal="true"
               aria-labelledby="mode-picker-title"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex shrink-0 flex-col items-center pt-3 pb-1">
-                <div className="h-1.5 w-11 rounded-full bg-ufie-accent/50" aria-hidden />
+                <div className="h-1.5 w-11 rounded-full bg-blue-200/70" aria-hidden />
               </div>
               <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-                <h2 id="mode-picker-title" className="text-lg font-semibold text-ufie-text">
+                <h2 id="mode-picker-title" className="text-lg font-semibold leading-snug text-slate-800">
                   Como você quer começar agora?
                 </h2>
                 <div className="mt-4 flex flex-col gap-3">
@@ -648,10 +648,9 @@ export default function Home() {
                       setOlieFlowOpen(true);
                       selectMode("apoio");
                     }}
-                    className="w-full rounded-2xl border border-ufie-border bg-ufie-bg px-4 py-4 text-left text-ufie-text transition hover:border-ufie-accent/60"
+                    className="w-full min-h-[3.25rem] rounded-2xl border border-blue-200 bg-white px-4 py-3 text-left text-[15px] font-medium leading-snug text-slate-800 shadow-sm transition hover:border-blue-300/60 focus:outline-none focus:ring-2 focus:ring-blue-300/70 active:scale-[0.99]"
                   >
-                    <p className="text-sm font-semibold">Quero conversar</p>
-                    <p className="text-xs text-ufie-muted">Abrir chat em modo apoio</p>
+                    💬 Quero conversar um pouco
                   </button>
                   <button
                     type="button"
@@ -659,18 +658,17 @@ export default function Home() {
                       setOlieFlowOpen(true);
                       selectMode("socorro");
                     }}
-                    className="w-full rounded-2xl border border-ufie-accent/50 bg-ufie-bg px-4 py-4 text-left text-ufie-text transition hover:border-ufie-accent"
+                    className="w-full min-h-[3.25rem] rounded-2xl border border-blue-200 bg-white px-4 py-3 text-left text-[15px] font-medium leading-snug text-slate-800 shadow-sm transition hover:border-blue-300/60 focus:outline-none focus:ring-2 focus:ring-blue-300/70 active:scale-[0.99]"
                   >
-                    <p className="text-sm font-semibold">Estou em crise</p>
-                    <p className="text-xs text-ufie-muted">Abrir chat e mostrar sintomas agora</p>
+                    ⚡ Estou em crise
                   </button>
                 </div>
               </div>
-              <div className="shrink-0 border-t border-ufie-border bg-ufie-surface px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
+              <div className="shrink-0 border-t border-blue-100 bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
                 <button
                   type="button"
                   onClick={() => setModePickerDrawerOpen(false)}
-                  className="w-full rounded-xl border border-ufie-border py-2.5 text-sm text-ufie-muted"
+                  className="w-full rounded-xl border border-blue-200 py-2.5 text-[14px] font-medium text-slate-600 hover:bg-blue-50/80"
                 >
                   Fechar
                 </button>
