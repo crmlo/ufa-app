@@ -3,7 +3,7 @@
 const PLACEHOLDER_ENTRIES = [
   {
     date: "28 mar 2026",
-    mode: "Socorro",
+    mode: "Ajuda imediata",
     sintomas: "Coração acelerado, falta de ar",
     ajudou: "Respirar junto + presença",
   },
@@ -15,7 +15,7 @@ const PLACEHOLDER_ENTRIES = [
   },
   {
     date: "15 mar 2026",
-    mode: "Socorro",
+    mode: "Ajuda imediata",
     sintomas: "Medo intenso",
     ajudou: "Técnicas de ancoragem (placeholder)",
   },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import {
   HEALTH_EXCLUSIVE,
@@ -110,6 +110,28 @@ function buildPayload(
 const EMAIL_RE =
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/** Tela “Já tenho conta” — pede só o email */
+const STEP_LOGIN_EMAIL = 10;
+
+function getEmailRedirectTo(): string | undefined {
+  const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "");
+  const origin =
+    typeof window !== "undefined" ? window.location.origin : "";
+  const redirectBase = fromEnv || origin;
+  return redirectBase ? `${redirectBase}/` : undefined;
+}
+
+function isLikelyNoAccountError(message: string): boolean {
+  const m = message.toLowerCase();
+  return (
+    m.includes("signups not allowed") ||
+    m.includes("user not found") ||
+    m.includes("email not found") ||
+    m.includes("no user") ||
+    m.includes("not registered")
+  );
+}
+
 export function OnboardingFlow({ onComplete }: Props) {
   const [step, setStep] = useState(1);
   const [nome, setNome] = useState("");
@@ -121,6 +143,8 @@ export function OnboardingFlow({ onComplete }: Props) {
   const [email, setEmail] = useState("");
   const [authBusy, setAuthBusy] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [resendCooldownEnds, setResendCooldownEnds] = useState(0);
+  const [resendSecondsLeft, setResendSecondsLeft] = useState(0);
 
   const persistPending = useCallback(
     (payload: PendingProfilePayload) => {
@@ -214,18 +238,17 @@ export function OnboardingFlow({ onComplete }: Props) {
     persistPending(payload);
     try {
       const supabase = getSupabaseBrowserClient();
-      const origin =
-        typeof window !== "undefined" ? window.location.origin : "";
       const { error } = await supabase.auth.signInWithOtp({
         email: em,
         options: {
-          emailRedirectTo: origin ? `${origin}/` : undefined,
+          emailRedirectTo: getEmailRedirectTo(),
         },
       });
       if (error) {
         setAuthError(error.message);
         return;
       }
+      setResendCooldownEnds(Date.now() + 60_000);
       setStep(7);
     } catch (e) {
       setAuthError(e instanceof Error ? e.message : "Erro ao enviar o link.");
@@ -234,7 +257,110 @@ export function OnboardingFlow({ onComplete }: Props) {
     }
   };
 
-  const progress = (step / TOTAL_ONBOARDING_STEPS) * 100;
+  const sendLoginMagicLink = async () => {
+    const em = email.trim();
+    if (!EMAIL_RE.test(em)) {
+      setAuthError("Digite um email válido.");
+      return;
+    }
+    setAuthError(null);
+    setAuthBusy(true);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase.auth.signInWithOtp({
+        email: em,
+        options: {
+          emailRedirectTo: getEmailRedirectTo(),
+          shouldCreateUser: false,
+        },
+      });
+      if (error) {
+        const eml = error.message.toLowerCase();
+        if (eml.includes("rate") || eml.includes("many requests")) {
+          setAuthError(error.message);
+          return;
+        }
+        if (isLikelyNoAccountError(error.message)) {
+          setAuthError(
+            "Este email ainda não está cadastrado. Vamos criar seu perfil no passo a passo — é bem rapidinho."
+          );
+          setStep(2);
+          return;
+        }
+        setAuthError(error.message);
+        return;
+      }
+      setResendCooldownEnds(Date.now() + 60_000);
+      setStep(7);
+    } catch (e) {
+      setAuthError(e instanceof Error ? e.message : "Erro ao enviar o link.");
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  const resendMagicLink = async () => {
+    if (Date.now() < resendCooldownEnds || authBusy) return;
+    const em = email.trim();
+    if (!EMAIL_RE.test(em)) {
+      setAuthError("Digite um email válido.");
+      return;
+    }
+    setAuthError(null);
+    setAuthBusy(true);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const hasPending = !!localStorage.getItem(STORAGE_PENDING_PROFILE);
+      const { error } = await supabase.auth.signInWithOtp({
+        email: em,
+        options: {
+          emailRedirectTo: getEmailRedirectTo(),
+          ...(hasPending ? {} : { shouldCreateUser: false }),
+        },
+      });
+      if (error) {
+        setAuthError(error.message);
+        return;
+      }
+      setResendCooldownEnds(Date.now() + 60_000);
+    } catch (e) {
+      setAuthError(e instanceof Error ? e.message : "Erro ao reenviar.");
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  useEffect(() => {
+    if (step !== 7) return;
+    const tick = () => {
+      setResendSecondsLeft(
+        Math.max(0, Math.ceil((resendCooldownEnds - Date.now()) / 1000))
+      );
+    };
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [step, resendCooldownEnds]);
+
+  useEffect(() => {
+    if (step !== 7) return;
+    const onVis = () => {
+      if (document.visibilityState === "visible") void trySyncSessionAndFinish();
+    };
+    const onFocus = () => void trySyncSessionAndFinish();
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("focus", onFocus);
+    const poll = window.setInterval(() => void trySyncSessionAndFinish(), 5000);
+    return () => {
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("focus", onFocus);
+      window.clearInterval(poll);
+    };
+  }, [step, trySyncSessionAndFinish]);
+
+  const progressStep =
+    step === STEP_LOGIN_EMAIL ? 1 : Math.min(step, TOTAL_ONBOARDING_STEPS);
+  const progress = (progressStep / TOTAL_ONBOARDING_STEPS) * 100;
 
   const canContinueStep2 = nome.trim().length > 0;
 
@@ -244,10 +370,10 @@ export function OnboardingFlow({ onComplete }: Props) {
         <div
           className="mx-auto mb-3 h-1.5 max-w-md overflow-hidden rounded-full bg-blue-100/90"
           role="progressbar"
-          aria-valuenow={step}
+          aria-valuenow={progressStep}
           aria-valuemin={1}
           aria-valuemax={TOTAL_ONBOARDING_STEPS}
-          aria-label={`Etapa ${step} de ${TOTAL_ONBOARDING_STEPS}`}
+          aria-label={`Etapa ${progressStep} de ${TOTAL_ONBOARDING_STEPS}`}
         >
           <div
             className="h-full rounded-full bg-blue-500 transition-[width] duration-300 ease-out"
@@ -259,6 +385,10 @@ export function OnboardingFlow({ onComplete }: Props) {
             type="button"
             onClick={() => {
               setAuthError(null);
+              if (step === STEP_LOGIN_EMAIL) {
+                setStep(1);
+                return;
+              }
               setStep((s) => Math.max(1, s - 1));
             }}
             className="text-[13px] font-medium text-slate-500 underline-offset-2 hover:text-slate-600 hover:underline"
@@ -284,14 +414,68 @@ export function OnboardingFlow({ onComplete }: Props) {
                 Antes da gente começar, me conta um pouquinho sobre você? Assim
                 eu consigo te ajudar de um jeito que faça sentido pra você.
               </p>
+              <p className="text-[14px] leading-relaxed text-slate-500">
+                É bem rapidinho e leva menos de 1 minuto.
+              </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setStep(2)}
-              className="w-full rounded-2xl bg-blue-500 py-3.5 text-[15px] font-semibold text-white shadow-md transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-slate-50"
-            >
-              Começar
-            </button>
+            <div className="flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                className="w-full rounded-2xl bg-blue-500 py-3.5 text-[15px] font-semibold text-white shadow-md transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-slate-50"
+              >
+                Começar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthError(null);
+                  setStep(STEP_LOGIN_EMAIL);
+                }}
+                className="w-full rounded-2xl border border-blue-200 bg-white py-3.5 text-[15px] font-medium text-blue-800 shadow-sm transition hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              >
+                Já tenho conta
+              </button>
+            </div>
+          </div>
+        )}
+
+        {step === STEP_LOGIN_EMAIL && (
+          <div className="flex flex-1 flex-col gap-5">
+            <h1 className="text-xl font-semibold leading-snug text-slate-800">
+              Entrar com seu email
+            </h1>
+            <p className="text-[14px] leading-relaxed text-slate-600">
+              Enviamos um link mágico para você acessar sua conta — sem senha.
+            </p>
+            <label htmlFor="onb-login-email" className="sr-only">
+              Email
+            </label>
+            <input
+              id="onb-login-email"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="seu@email.com"
+              className="w-full rounded-2xl border border-blue-200 bg-white px-4 py-3.5 text-[15px] text-slate-800 shadow-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-300/60"
+            />
+            {authError && (
+              <p className="text-sm text-red-800" role="alert">
+                {authError}
+              </p>
+            )}
+            <div className="mt-auto flex flex-col gap-3 pt-6">
+              <button
+                type="button"
+                disabled={authBusy}
+                onClick={() => void sendLoginMagicLink()}
+                className="w-full rounded-2xl bg-blue-500 py-3.5 text-[15px] font-semibold text-white shadow-md transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 disabled:opacity-50"
+              >
+                {authBusy ? "Enviando…" : "Enviar link de acesso"}
+              </button>
+            </div>
           </div>
         )}
 
@@ -488,19 +672,10 @@ export function OnboardingFlow({ onComplete }: Props) {
         {step === 6 && (
           <div className="flex flex-1 flex-col gap-5">
             <h1 className="text-xl font-semibold leading-snug text-slate-800">
-              Quer que a Ufie lembre de tudo que você me contou? Cria sua conta
-              gratuita.
+              Quer que eu me lembre de tudo que você me contou? É só criar sua
+              conta gratuita. Enviamos um link mágico por email — sem senha para
+              decorar 😌
             </h1>
-            <p className="text-[14px] leading-relaxed text-[#8a7a6a]">
-              Enviamos um link mágico por email — sem senha para decorar.
-            </p>
-            <button
-              type="button"
-              onClick={finishWithoutAccount}
-              className="self-start text-left text-[14px] font-medium text-slate-500 underline decoration-blue-200/80 underline-offset-2 transition hover:text-slate-600"
-            >
-              Prefiro continuar sem salvar meu histórico
-            </button>
             <label htmlFor="onb-email" className="sr-only">
               Email
             </label>
@@ -528,6 +703,13 @@ export function OnboardingFlow({ onComplete }: Props) {
               >
                 {authBusy ? "Enviando…" : "Enviar link de acesso"}
               </button>
+              <button
+                type="button"
+                onClick={finishWithoutAccount}
+                className="text-center text-[14px] font-medium text-slate-500 underline decoration-blue-200/80 underline-offset-2 transition hover:text-slate-700"
+              >
+                Prefiro continuar sem salvar meu histórico
+              </button>
             </div>
           </div>
         )}
@@ -536,21 +718,35 @@ export function OnboardingFlow({ onComplete }: Props) {
           <div className="flex flex-1 flex-col justify-center gap-8">
             <div className="space-y-3">
               <h1 className="text-xl font-semibold leading-snug text-slate-800">
-                Te mandei um link no seu email. Clica nele para entrar.
+                Te mandei um link no seu email. É só clicar nele para começar
+                ☺️.
               </h1>
+              <p className="text-[13px] leading-relaxed text-slate-500">
+                Depois de abrir o link, volte a esta aba — vamos detectar seu
+                login automaticamente.
+              </p>
               {authError ? (
                 <p className="text-sm text-red-800" role="alert">
                   {authError}
                 </p>
               ) : null}
             </div>
-            <button
-              type="button"
-              onClick={() => void trySyncSessionAndFinish()}
-              className="w-full rounded-2xl bg-blue-500 py-3.5 text-[15px] font-semibold text-white shadow-md transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2"
-            >
-              Já entrei pelo link
-            </button>
+            <div className="flex flex-col items-center gap-2">
+              <button
+                type="button"
+                disabled={
+                  authBusy ||
+                  resendSecondsLeft > 0 ||
+                  !EMAIL_RE.test(email.trim())
+                }
+                onClick={() => void resendMagicLink()}
+                className="text-[13px] font-medium text-blue-700 underline decoration-blue-200 underline-offset-2 transition hover:text-blue-900 disabled:cursor-not-allowed disabled:no-underline disabled:opacity-50"
+              >
+                {resendSecondsLeft > 0
+                  ? `Reenviar email (${resendSecondsLeft}s)`
+                  : "Reenviar email"}
+              </button>
+            </div>
           </div>
         )}
       </main>

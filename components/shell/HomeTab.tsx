@@ -16,7 +16,7 @@ export function HomeTab({ displayName, onOpenUfie }: Props) {
         <h1 className="text-2xl font-semibold tracking-tight text-slate-800">
           {greeting}
         </h1>
-        <p className="text-sm text-slate-500">Como posso te ajudar agora?</p>
+        <p className="text-sm text-slate-500">Como posso te ajudar hoje?</p>
       </header>
 
       <button
@@ -27,9 +27,6 @@ export function HomeTab({ displayName, onOpenUfie }: Props) {
         <div className="flex min-w-0 flex-1 flex-col gap-3 pr-3">
           <span className="text-lg font-semibold text-blue-950">
             Falar com a Ufie
-          </span>
-          <span className="text-sm leading-snug text-blue-900/80">
-            Apoio ou socorro — escolha o modo na próxima tela.
           </span>
           <span className="inline-flex items-center gap-1 text-sm font-medium text-blue-700">
             Começar

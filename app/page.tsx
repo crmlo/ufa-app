@@ -76,6 +76,12 @@ const SOS_CONTACTS = [
     description: "Emergências gerais",
     tel: "193",
   },
+  {
+    icon: "🚔",
+    name: "Polícia",
+    description: "Emergência policial",
+    tel: "190",
+  },
 ] as const;
 
 function buildSocorroDrawerMessage(
@@ -173,6 +179,7 @@ export default function Home() {
   const [ufieFlowOpen, setUfieFlowOpen] = useState(false);
 
   const chatInputRef = useRef<HTMLInputElement>(null);
+  const socorroDrawerPanY = useRef<number | null>(null);
 
   const refreshDisplayName = useCallback(async () => {
     let fromProfile: string | null = null;
@@ -690,7 +697,16 @@ export default function Home() {
             onOpenSos={() => setSosDrawerOpen(true)}
           />
 
-          <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 px-6 pb-12 pt-6">
+          <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 px-6 pb-12 pt-4">
+            <p className="rounded-2xl border border-blue-100/90 bg-blue-50/50 px-4 py-3 text-center text-[12px] leading-relaxed text-slate-600">
+              A Ufie oferece apoio por conversa, mas{" "}
+              <strong className="font-medium text-slate-700">
+                não substitui avaliação, diagnóstico ou tratamento com
+                profissionais de saúde
+              </strong>
+              . Em emergência, procure serviços de saúde ou use o SOS.
+            </p>
+
             <button
               type="button"
               onClick={() => selectMode("apoio")}
@@ -713,7 +729,7 @@ export default function Home() {
               className="group flex w-full flex-col items-start gap-1 rounded-2xl border-2 border-blue-400/50 bg-gradient-to-br from-blue-50 via-white to-blue-50/90 px-6 py-5 text-left shadow-[0_4px_20px_rgba(30,64,175,0.12)] ring-2 ring-blue-300/30 transition hover:border-blue-500/60 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400/50 active:scale-[0.99]"
             >
               <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-900">
-                Socorro
+                Ajuda imediata
               </span>
               <span className="text-lg font-semibold text-blue-950">
                 Estou em crise
@@ -740,10 +756,10 @@ export default function Home() {
       {sosDrawerPortal}
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800">
       <AppMainHeader
-        displayName={displayName}
         onOpenSos={() => setSosDrawerOpen(true)}
         chatNavigation={{
-          modeLabel: mode === "apoio" ? "APOIO" : "SOCORRO",
+          modeLabel:
+            mode === "apoio" ? "Apoio" : "Ajuda imediata",
           modeDescription,
           variant: mode,
           onBack: goToModeSelection,
@@ -871,7 +887,7 @@ export default function Home() {
         )}
       </main>
 
-      {/* Drawer inicial — modo Socorro */}
+      {/* Drawer inicial — modo ajuda imediata */}
       {mode === "socorro" &&
         socorroInitialDrawer &&
         !autoEmergency && (
@@ -879,14 +895,28 @@ export default function Home() {
           <div
             className="ufie-drawer-backdrop fixed inset-0 z-40 bg-[#3d3429]/25"
             aria-hidden
+            onClick={() => setSocorroInitialDrawer(false)}
           />
           <div
             className="ufie-drawer-sheet fixed bottom-0 left-0 right-0 z-50 flex max-h-[min(88vh,640px)] flex-col rounded-t-3xl border border-blue-100 border-b-0 bg-white shadow-[0_-12px_48px_rgba(60,40,20,0.14)]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="socorro-drawer-heading"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex shrink-0 flex-col items-center pt-3 pb-1">
+            <div
+              className="flex shrink-0 flex-col items-center pt-3 pb-1"
+              onTouchStart={(e) => {
+                socorroDrawerPanY.current = e.touches[0].clientY;
+              }}
+              onTouchEnd={(e) => {
+                const start = socorroDrawerPanY.current;
+                socorroDrawerPanY.current = null;
+                if (start == null) return;
+                const dy = e.changedTouches[0].clientY - start;
+                if (dy > 56) setSocorroInitialDrawer(false);
+              }}
+            >
               <div
                 className="h-1.5 w-11 rounded-full bg-blue-200/70"
                 aria-hidden
@@ -894,12 +924,21 @@ export default function Home() {
             </div>
 
             <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-2">
-              <h2
-                id="socorro-drawer-heading"
-                className="text-lg font-semibold leading-snug text-slate-800"
-              >
-                {SOCORRO_DRAWER_TITLE}
-              </h2>
+              <div className="flex items-start justify-between gap-3">
+                <h2
+                  id="socorro-drawer-heading"
+                  className="text-lg font-semibold leading-snug text-slate-800"
+                >
+                  {SOCORRO_DRAWER_TITLE}
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setSocorroInitialDrawer(false)}
+                  className="shrink-0 text-[13px] font-medium text-slate-500 underline-offset-2 hover:text-slate-700 hover:underline"
+                >
+                  Fechar
+                </button>
+              </div>
 
               <div className="mt-5 flex flex-col gap-2.5" role="group">
                 {OPENING_SOCORRO_OPTIONS.map((label) => {
