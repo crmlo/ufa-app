@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
 import { AutoEmergencyDrawer } from "@/components/AutoEmergencyDrawer";
+import { BoxBreathingModal } from "@/components/BoxBreathingModal";
 import { AppMainHeader, FloatingSosButton } from "@/components/AppMainHeader";
 import { BottomNav, type MainTabId } from "@/components/shell/BottomNav";
 import { ConteudosTab } from "@/components/shell/ConteudosTab";
@@ -126,6 +127,7 @@ export default function Home() {
   const [inlineFeedbackPoll, setInlineFeedbackPoll] =
     useState<InlineFeedbackPoll | null>(null);
   const [modePickerDrawerOpen, setModePickerDrawerOpen] = useState(false);
+  const [boxBreathingOpen, setBoxBreathingOpen] = useState(false);
 
   const [sosDrawerOpen, setSosDrawerOpen] = useState(false);
 
@@ -185,6 +187,7 @@ export default function Home() {
     !!autoEmergency ||
     socorroInitialDrawer ||
     modePickerDrawerOpen ||
+    boxBreathingOpen ||
     sosDrawerOpen;
 
   useEffect(() => {
@@ -257,6 +260,7 @@ export default function Home() {
     setSocorroInitialDrawer(false);
     setModePickerDrawerOpen(false);
     setInlineFeedbackPoll(null);
+    setBoxBreathingOpen(false);
     setSosDrawerOpen(false);
     setAutoEmergency(null);
     setQuickReplies(null);
@@ -493,6 +497,13 @@ export default function Home() {
     void sendUserMessage(draft);
   }
 
+  function shouldShowBreathingCta(msg: Message): boolean {
+    return (
+      msg.role === "assistant" &&
+      /vamos respirar juntas\?/i.test(msg.text)
+    );
+  }
+
   const showChatForm = true;
 
   const sosDrawerPortal = sosDrawerOpen ? (
@@ -724,7 +735,16 @@ export default function Home() {
                     : "max-w-[85%] rounded-2xl rounded-bl-md border border-blue-100 bg-slate-100/90 px-4 py-2.5 text-[15px] leading-relaxed text-slate-800 shadow-sm"
                 }
               >
-                {m.text}
+                <p className="whitespace-pre-line">{m.text}</p>
+                {shouldShowBreathingCta(m) && (
+                  <button
+                    type="button"
+                    onClick={() => setBoxBreathingOpen(true)}
+                    className="mt-2 inline-flex rounded-full border border-ufie-accent/60 bg-ufie-bg px-3 py-1.5 text-xs font-medium text-ufie-text transition hover:bg-ufie-accent/20 focus:outline-none focus:ring-2 focus:ring-ufie-accent/70"
+                  >
+                    Vamos
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -983,6 +1003,10 @@ export default function Home() {
           onClose={() => setAutoEmergency(null)}
         />
       )}
+      <BoxBreathingModal
+        open={boxBreathingOpen}
+        onClose={() => setBoxBreathingOpen(false)}
+      />
     </div>
     </>
   );

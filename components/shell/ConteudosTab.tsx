@@ -1,20 +1,32 @@
 "use client";
 
+import { useState } from "react";
+import { BoxBreathingModal } from "@/components/BoxBreathingModal";
 import {
   CONTENT_CATEGORIES,
   PLACEHOLDER_ARTICLES,
 } from "./constants";
 
 export function ConteudosTab() {
+  const [breathingOpen, setBreathingOpen] = useState(false);
+
   return (
+    <>
     <div className="flex flex-col gap-10 pb-4 pt-2">
-      <header>
+      <header className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight text-slate-800">
           Conteúdos
         </h1>
         <p className="mt-1 text-sm text-slate-500">
           Biblioteca em construção — estrutura placeholder.
         </p>
+        <button
+          type="button"
+          onClick={() => setBreathingOpen(true)}
+          className="inline-flex items-center rounded-full border border-blue-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-300/70"
+        >
+          Respiração quadrada
+        </button>
       </header>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -62,5 +74,7 @@ export function ConteudosTab() {
         );
       })}
     </div>
+    <BoxBreathingModal open={breathingOpen} onClose={() => setBreathingOpen(false)} />
+    </>
   );
 }
