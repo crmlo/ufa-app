@@ -112,6 +112,7 @@ MODO ATUAL — APOIO (o usuário escolheu "Quero conversar"):
 - Inicie perguntando como a pessoa está chegando agora
 - Você pode explorar o que a pessoa sente, refletir junto e fazer perguntas — uma de cada vez, sem pressa
 - Priorize escuta e presença; técnicas e sugestões vêm depois do acolhimento
+- Se sugerir técnica de respiração, não escreva instruções de contagem no texto. Escreva só o convite curto e finalize com o marcador __BREATHING_EXERCISE__ em linha sozinha
 - Respostas rápidas: use menos que no modo crise`;
 
 const MODE_SOCORRO = `
@@ -123,6 +124,7 @@ MODO ATUAL — CRISE (o usuário escolheu "Estou em crise"):
 - Uma micro-ação ou uma frase objetiva de cada vez
 - O protocolo de risco continua valendo integralmente
 - Prefira oferecer __QUICK_REPLIES__ quando uma resposta curta destravar o próximo passo
+- Se sugerir técnica de respiração, não escreva instruções de contagem no texto. Escreva só o convite curto e finalize com o marcador __BREATHING_EXERCISE__ em linha sozinha
 
 PERGUNTAS SIM/NÃO no modo crise (obrigatório):
 - Use o bloco abaixo APENAS quando a pergunta for binária de verdade, respondível estritamente com Sim ou Não, sem ambiguidade.
@@ -136,6 +138,19 @@ type ChatMode = "apoio" | "socorro";
 
 const QUICK_MARKER = "__QUICK_REPLIES__";
 const FEEDBACK_MARKER = "__FEEDBACK_REQUEST__";
+const BREATHING_MARKER = "__BREATHING_EXERCISE__";
+
+function parseBreathingExercise(raw: string): {
+  text: string;
+  breathing_exercise: boolean;
+} {
+  const idx = raw.lastIndexOf(BREATHING_MARKER);
+  if (idx === -1) {
+    return { text: raw.trimEnd(), breathing_exercise: false };
+  }
+  const text = raw.slice(0, idx).trimEnd();
+  return { text, breathing_exercise: true };
+}
 
 function parseFeedbackRequest(raw: string): { text: string; feedback_prompt: boolean } {
   const idx = raw.lastIndexOf(FEEDBACK_MARKER);
@@ -307,8 +322,10 @@ export async function POST(req: Request) {
 
     const rawReply = extractText(response);
     const { text: afterEmergency, emergency } = parseEmergencyMarker(rawReply);
+    const { text: afterBreathing, breathing_exercise } =
+      parseBreathingExercise(afterEmergency);
     const { text: afterFeedback, feedback_prompt: hasFeedbackMarker } =
-      parseFeedbackRequest(afterEmergency);
+      parseFeedbackRequest(afterBreathing);
     let { reply, quick_replies } = parseQuickReplies(afterFeedback);
     const { text: replyAfterEnd, conversation_end } =
       parseConversationEnd(reply);
@@ -363,6 +380,7 @@ export async function POST(req: Request) {
       reply,
       quick_replies: conversation_end ? null : quick_replies,
       feedback_prompt,
+      breathing_exercise: conversation_end ? false : breathing_exercise,
       emergency,
       conversation_end,
       persisted,

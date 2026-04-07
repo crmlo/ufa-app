@@ -28,6 +28,7 @@ type Message = {
   text: string;
   /** Mensagem automática ao escolher modo — não entra no array enviado à API Anthropic como primeira mensagem */
   opening?: boolean;
+  breathingInvite?: boolean;
 };
 
 type InlineFeedbackPoll = {
@@ -435,6 +436,7 @@ export default function Home() {
         reply?: string;
         quick_replies?: string[] | null;
         feedback_prompt?: boolean;
+        breathing_exercise?: boolean;
         emergency?: EmergencyKind | null;
         conversation_end?: boolean;
         error?: string;
@@ -451,6 +453,7 @@ export default function Home() {
         id: crypto.randomUUID(),
         role: "assistant",
         text: data.reply!,
+        breathingInvite: data.breathing_exercise === true,
       };
       setMessages((prev) => [...prev, assistantMsg]);
 
@@ -495,13 +498,6 @@ export default function Home() {
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     void sendUserMessage(draft);
-  }
-
-  function shouldShowBreathingCta(msg: Message): boolean {
-    return (
-      msg.role === "assistant" &&
-      /vamos respirar juntas\?/i.test(msg.text)
-    );
   }
 
   const showChatForm = true;
@@ -736,13 +732,13 @@ export default function Home() {
                 }
               >
                 <p className="whitespace-pre-line">{m.text}</p>
-                {shouldShowBreathingCta(m) && (
+                {m.breathingInvite && (
                   <button
                     type="button"
                     onClick={() => setBoxBreathingOpen(true)}
                     className="mt-2 inline-flex rounded-full border border-ufie-accent/60 bg-ufie-bg px-3 py-1.5 text-xs font-medium text-ufie-text transition hover:bg-ufie-accent/20 focus:outline-none focus:ring-2 focus:ring-ufie-accent/70"
                   >
-                    Vamos
+                    Vamos respirar
                   </button>
                 )}
               </div>
