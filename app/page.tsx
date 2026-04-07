@@ -732,13 +732,13 @@ export default function Home() {
           ))}
           {inlineFeedbackPoll && (
             <div className="flex justify-start">
-              <div className="w-full max-w-[92%] rounded-2xl border border-ufie-border bg-ufie-surface p-3">
+              <div className="w-full max-w-[92%] rounded-[20px] border border-ufie-border/90 bg-ufie-surface px-3.5 py-3 shadow-[var(--shadow-ufie-card)]">
                 <p className="text-[15px] leading-relaxed text-ufie-text">
                   {inlineFeedbackPoll.question}
                 </p>
                 {!inlineFeedbackPoll.submitted && (
                   <>
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    <div className="mt-3.5 flex flex-wrap gap-2">
                       {POST_CRISIS_FEEDBACK_OPTIONS.map((label) => {
                         const selected = inlineFeedbackPoll.selected.includes(label);
                         return (
@@ -746,10 +746,10 @@ export default function Home() {
                             key={label}
                             type="button"
                             onClick={() => toggleFeedbackOption(label)}
-                            className={`rounded-full border px-3 py-1.5 text-xs transition ${
+                            className={`rounded-full border px-3 py-1.5 text-[12px] font-medium transition focus:outline-none focus:ring-2 focus:ring-ufie-accent/70 focus:ring-offset-2 focus:ring-offset-ufie-surface ${
                               selected
-                                ? "border-ufie-accent bg-ufie-accent/20 text-ufie-text"
-                                : "border-ufie-border bg-ufie-bg text-ufie-muted"
+                                ? "border-ufie-accent/70 bg-ufie-accent/25 text-ufie-text shadow-[var(--shadow-ufie-card)]"
+                                : "border-ufie-border bg-ufie-bg text-ufie-muted hover:border-ufie-accent/45 hover:bg-ufie-accent/10"
                             }`}
                           >
                             {label}
@@ -762,20 +762,22 @@ export default function Home() {
                       value={inlineFeedbackPoll.detail}
                       onChange={(e) => updateFeedbackDetail(e.target.value)}
                       placeholder="Se quiser detalhar..."
-                      className="mt-3 w-full rounded-xl border border-ufie-border bg-ufie-bg px-3 py-2 text-sm text-ufie-text focus:outline-none focus:ring-2 focus:ring-ufie-accent/70"
+                      className="mt-3.5 w-full rounded-[14px] border border-ufie-border/90 bg-ufie-bg px-3 py-2.5 text-sm text-ufie-text placeholder:text-ufie-muted/65 focus:outline-none focus:ring-2 focus:ring-ufie-accent/70 focus:ring-offset-2 focus:ring-offset-ufie-surface"
                     />
                     <button
                       type="button"
                       disabled={!canSubmitFeedback || inlineFeedbackPoll.submitting}
                       onClick={() => void submitPostCrisisFeedback()}
-                      className="mt-3 rounded-xl bg-ufie-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-45"
+                      className="mt-3.5 rounded-[14px] bg-ufie-primary px-4 py-2.5 text-sm font-medium text-white shadow-[var(--shadow-ufie-card)] transition hover:bg-ufie-text/90 focus:outline-none focus:ring-2 focus:ring-ufie-accent focus:ring-offset-2 focus:ring-offset-ufie-surface disabled:pointer-events-none disabled:opacity-45"
                     >
                       {inlineFeedbackPoll.submitting ? "Enviando..." : "Enviar feedback"}
                     </button>
                   </>
                 )}
                 {inlineFeedbackPoll.submitted && (
-                  <p className="mt-2 text-xs text-ufie-muted">Feedback enviado. Obrigada por me contar.</p>
+                  <p className="mt-2.5 text-xs font-medium text-ufie-muted">
+                    Feedback enviado. Obrigada por me contar.
+                  </p>
                 )}
               </div>
             </div>
