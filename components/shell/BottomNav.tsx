@@ -52,7 +52,7 @@ export function BottomNav({ active, onChange, onOliePress }: Props) {
           <button
             type="button"
             onClick={onOliePress}
-            className="-mt-7 flex h-[3.35rem] w-[3.35rem] shrink-0 items-center justify-center overflow-hidden rounded-full bg-olie-accent shadow-[0_6px_20px_rgba(92,128,120,0.38)] ring-4 ring-[#f7faf9] transition hover:opacity-95 focus:outline-none focus:ring-4 focus:ring-olie-border/80 active:scale-[0.98]"
+            className="-mt-7 flex h-[3.35rem] w-[3.35rem] shrink-0 items-center justify-center overflow-hidden rounded-full border-[1.5px] border-olie-border bg-[linear-gradient(135deg,#F0F7F4_0%,#C8DDD7_100%)] shadow-[0_6px_20px_rgba(26,26,46,0.12)] ring-4 ring-[#f7faf9] transition hover:opacity-95 focus:outline-none focus:ring-4 focus:ring-olie-border/80 active:scale-[0.98]"
             aria-label="Estou em crise — falar com a Olie"
           >
             <Olie state="calm" size={48} className="rounded-full object-cover" />

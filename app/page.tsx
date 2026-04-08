@@ -30,6 +30,7 @@ type Message = {
   /** Mensagem automática ao escolher modo — não entra no array enviado à API Anthropic como primeira mensagem */
   opening?: boolean;
   breathingInvite?: boolean;
+  hidden?: boolean;
 };
 
 type InlineFeedbackPoll = {
@@ -452,10 +453,21 @@ export default function Home() {
         throw new Error("Resposta vazia da Olie.");
       }
 
+      const sanitizeOlieText = (input: string) => {
+        // Evita “--” e similares na timeline, sem mudar sentido.
+        return input
+          .replace(/\s*--\s*/g, ", ")
+          .replace(/,\s*,/g, ",")
+          .replace(/\s+,/g, ",")
+          .replace(/,\s+\./g, ".")
+          .replace(/\s{2,}/g, " ")
+          .trim();
+      };
+
       const assistantMsg: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
-        text: data.reply!,
+        text: sanitizeOlieText(data.reply!),
         breathingInvite: data.breathing_exercise === true,
       };
       setMessages((prev) => [...prev, assistantMsg]);
@@ -479,6 +491,103 @@ export default function Home() {
         setInlineFeedbackPoll({
           id: crypto.randomUUID(),
           question: data.reply!.trim(),
+          selected: [],
+          detail: "",
+          submitting: false,
+          submitted: false,
+        });
+        setQuickReplies(null);
+      } else {
+        setConversationEnded(false);
+        setQuickReplies(Array.isArray(qr) && qr.length > 0 ? qr : null);
+      }
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "Não foi possível obter resposta.";
+      setError(msg);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function sendSystemNote(text: string) {
+    if (pending || !mode || !sessionId) return;
+    const msg: Message = {
+      id: crypto.randomUUID(),
+      role: "user",
+      text,
+      hidden: true,
+    };
+    setMessages((prev) => [...prev, msg]);
+    setPending(true);
+
+    const baseForApi = messages.filter((m) => !m.opening && !m.hidden);
+    const history = [...baseForApi, msg].map((m) => ({
+      role: m.role,
+      content: m.text,
+    }));
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: history,
+          mode,
+          session_id: sessionId,
+          stored_messages: [...messages, msg].map(({ id, role, text }) => ({
+            id,
+            role,
+            text,
+          })),
+        }),
+      });
+      const data = (await res.json()) as {
+        reply?: string;
+        quick_replies?: string[] | null;
+        feedback_prompt?: boolean;
+        breathing_exercise?: boolean;
+        emergency?: EmergencyKind | null;
+        conversation_end?: boolean;
+        error?: string;
+      };
+      if (!res.ok) throw new Error(data.error ?? `Erro ${res.status}`);
+      if (!data.reply?.trim()) throw new Error("Resposta vazia da Olie.");
+
+      const replySanitized = data.reply!
+        .replace(/\s*--\s*/g, ", ")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          text: replySanitized,
+          breathingInvite: data.breathing_exercise === true,
+        },
+      ]);
+
+      const qr = data.quick_replies;
+      const em = data.emergency;
+      const isEmergency =
+        em === "violence" || em === "medical" || em === "crisis";
+
+      if (isEmergency) {
+        setAutoEmergency(em);
+        setConversationEnded(false);
+        setSocorroInitialDrawer(false);
+        setInlineFeedbackPoll((prev) => (prev && prev.submitted ? prev : null));
+        setSosDrawerOpen(false);
+        setQuickReplies(null);
+      } else if (data.conversation_end) {
+        setConversationEnded(true);
+      } else if (data.feedback_prompt && mode === "socorro") {
+        setConversationEnded(false);
+        setInlineFeedbackPoll({
+          id: crypto.randomUUID(),
+          question: replySanitized,
           selected: [],
           detail: "",
           submitting: false,
@@ -647,13 +756,13 @@ export default function Home() {
         onBack={goToModeSelection}
       />
 
-      <main className="relative mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 pb-6 pt-4 sm:px-6">
+      <main className="relative mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 pb-3 pt-3 sm:px-6">
         <div
           className="flex min-h-[min(420px,50vh)] flex-1 flex-col gap-3 overflow-y-auto rounded-2xl border border-olie-border/90 bg-white/90 p-4 shadow-sm sm:p-5"
           role="log"
           aria-live="polite"
         >
-          {messages.map((m) => (
+          {messages.filter((m) => !m.hidden).map((m) => (
             <div
               key={m.id}
               className={
@@ -663,8 +772,8 @@ export default function Home() {
               <div
                 className={
                   m.role === "user"
-                    ? "max-w-[85%] rounded-2xl rounded-br-md bg-gradient-to-br from-olie-surface to-olie-bg px-4 py-2.5 text-[15px] leading-relaxed text-olie-text shadow-sm ring-1 ring-olie-border/60"
-                    : "max-w-[85%] rounded-2xl rounded-bl-md border border-olie-border/80 bg-olie-surface/50 px-4 py-2.5 text-[15px] leading-relaxed text-olie-text shadow-sm"
+                    ? "max-w-[85%] rounded-2xl rounded-br-md bg-[#C8DDD7] px-4 py-2.5 text-[15px] leading-relaxed text-[#1A1A2E] shadow-sm"
+                    : "max-w-[85%] rounded-2xl rounded-bl-md border border-olie-border/70 bg-[#F0F7F4] px-4 py-2.5 text-[15px] leading-relaxed text-[#1A1A2E] shadow-sm"
                 }
               >
                 <p className="whitespace-pre-line">{m.text}</p>
@@ -672,9 +781,9 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => setBoxBreathingOpen(true)}
-                    className="mt-2 inline-flex rounded-full border border-ufie-accent/60 bg-ufie-bg px-3 py-1.5 text-xs font-medium text-ufie-text transition hover:bg-ufie-accent/20 focus:outline-none focus:ring-2 focus:ring-ufie-accent/70"
+                    className="mt-2 inline-flex w-full items-center justify-center rounded-2xl border-[1.5px] border-olie-border bg-[linear-gradient(135deg,#F0F7F4_0%,#C8DDD7_100%)] px-4 py-3 text-[14px] font-semibold text-[#1A1A2E] shadow-sm transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-olie-accent/35"
                   >
-                    Vamos respirar
+                    Toque aqui para começarmos o exercício
                   </button>
                 )}
               </div>
@@ -766,60 +875,62 @@ export default function Home() {
           </p>
         )}
 
-        {quickReplies &&
-          quickReplies.length > 0 &&
-          !pending &&
-          showChatForm && (
-            <div className="mt-3 space-y-2">
-              <div
-                className="flex flex-wrap gap-2"
-                role="group"
-                aria-label="Respostas rápidas"
-              >
-                {quickReplies.map((label, i) => (
-                  <button
-                    key={`${i}-${label}`}
-                    type="button"
-                    onClick={() => sendUserMessage(label)}
-                    className="max-w-full rounded-full border border-olie-border bg-gradient-to-b from-white to-olie-surface/90 px-3 py-2 text-left text-[13px] leading-snug text-olie-text shadow-sm ring-1 ring-olie-border/50 transition hover:border-olie-accent/45 hover:bg-olie-surface focus:outline-none focus:ring-2 focus:ring-olie-accent/35 active:scale-[0.98] sm:max-w-[calc(50%-0.25rem)] sm:text-center"
-                  >
-                    {label}
-                  </button>
-                ))}
+        <div className="sticky bottom-0 z-40 -mx-4 mt-3 bg-[#f7faf9] px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:-mx-6 sm:px-6">
+          {quickReplies &&
+            quickReplies.length > 0 &&
+            !pending &&
+            showChatForm && (
+              <div className="space-y-2">
+                <div
+                  className="flex flex-wrap gap-2"
+                  role="group"
+                  aria-label="Respostas rápidas"
+                >
+                  {quickReplies.map((label, i) => (
+                    <button
+                      key={`${i}-${label}`}
+                      type="button"
+                      onClick={() => sendUserMessage(label)}
+                      className="max-w-full rounded-full border border-olie-border bg-white px-3 py-2 text-left text-[13px] leading-snug text-olie-text shadow-sm transition hover:bg-olie-surface focus:outline-none focus:ring-2 focus:ring-olie-accent/35 active:scale-[0.98] sm:max-w-[calc(50%-0.25rem)] sm:text-center"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-        {showChatForm && (
-          <form
-            onSubmit={handleSubmit}
-            className="mt-4 flex gap-3 rounded-2xl border border-olie-border/90 bg-white/90 p-2 shadow-sm ring-1 ring-olie-border/40 backdrop-blur-sm"
-          >
-            <label htmlFor="chat-input" className="sr-only">
-              Mensagem
-            </label>
-            <input
-              ref={chatInputRef}
-              id="chat-input"
-              type="text"
-              value={draft}
-              onChange={(e) => {
-                const v = e.target.value;
-                setDraft(v);
-                if (v.length > 0) setQuickReplies(null);
-              }}
-              placeholder="Escreva sua mensagem…"
-              autoComplete="off"
-              className="min-h-12 flex-1 rounded-xl border-0 bg-transparent px-3 text-[15px] text-olie-text placeholder:text-olie-muted focus:outline-none focus:ring-2 focus:ring-olie-accent/35 disabled:opacity-60"
-            />
-            <button
-              type="submit"
-              className="shrink-0 rounded-xl bg-olie-accent px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-olie-accent/45 focus:ring-offset-2 focus:ring-offset-[#f7faf9] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+          {showChatForm && (
+            <form
+              onSubmit={handleSubmit}
+              className="mt-3 flex gap-3 rounded-2xl border border-olie-border/90 bg-white/95 p-2 shadow-sm"
             >
-              {pending ? "…" : "Enviar"}
-            </button>
-          </form>
-        )}
+              <label htmlFor="chat-input" className="sr-only">
+                Mensagem
+              </label>
+              <input
+                ref={chatInputRef}
+                id="chat-input"
+                type="text"
+                value={draft}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setDraft(v);
+                  if (v.length > 0) setQuickReplies(null);
+                }}
+                placeholder="Escreva sua mensagem…"
+                autoComplete="off"
+                className="min-h-12 flex-1 rounded-xl border-0 bg-transparent px-3 text-[15px] text-olie-text placeholder:text-olie-muted focus:outline-none focus:ring-2 focus:ring-olie-accent/35 disabled:opacity-60"
+              />
+              <button
+                type="submit"
+                className="shrink-0 rounded-xl bg-olie-accent px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-olie-accent/45 focus:ring-offset-2 focus:ring-offset-[#f7faf9] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+              >
+                {pending ? "…" : "Enviar"}
+              </button>
+            </form>
+          )}
+        </div>
       </main>
 
       {/* Drawer inicial — modo ajuda imediata */}
@@ -933,7 +1044,12 @@ export default function Home() {
       )}
       <BoxBreathing
         open={boxBreathingOpen}
-        onClose={() => setBoxBreathingOpen(false)}
+        onClose={() => {
+          setBoxBreathingOpen(false);
+          void sendSystemNote(
+            "[sistema] O usuário acabou de completar o exercício de respiração guiada. Por favor, acolha e pergunte como ele está se sentindo agora."
+          );
+        }}
       />
     </div>
     </>

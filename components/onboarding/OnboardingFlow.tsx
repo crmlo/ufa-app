@@ -677,46 +677,49 @@ export function OnboardingFlow({ onComplete }: Props) {
         )}
 
         {step === 6 && (
-          <div className="flex flex-1 flex-col gap-5">
-            <h1 className="text-xl font-semibold leading-snug text-olie-text">
-              Quer que eu me lembre de tudo que você me contou? É só criar sua
-              conta gratuita. Enviamos um link mágico por email — sem senha para
-              decorar.
-            </h1>
-            <label htmlFor="onb-email" className="sr-only">
-              Email
-            </label>
-            <input
-              id="onb-email"
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu@email.com"
-              className="w-full rounded-2xl border border-olie-border bg-white px-4 py-3.5 text-[15px] text-olie-text shadow-sm focus:border-olie-accent focus:outline-none focus:ring-2 focus:ring-olie-accent/35"
-            />
-            {authError && (
-              <p className="text-sm text-red-800" role="alert">
-                {authError}
-              </p>
-            )}
-            <div className="mt-auto flex flex-col gap-3 pt-6">
-              <button
-                type="button"
-                disabled={authBusy}
-                onClick={() => void sendMagicLink()}
-                className="w-full rounded-2xl bg-olie-accent py-3.5 text-[15px] font-semibold text-white shadow-md transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-olie-accent/50 focus:ring-offset-2 focus:ring-offset-[#f7faf9] disabled:opacity-50"
-              >
-                {authBusy ? "Enviando…" : "Enviar link de acesso"}
-              </button>
-              <button
-                type="button"
-                onClick={finishWithoutAccount}
-                className="text-center text-[14px] font-medium text-olie-text-secondary underline decoration-olie-border underline-offset-2 transition hover:text-olie-text"
-              >
-                Prefiro continuar sem salvar meu histórico
-              </button>
+          <div className="flex min-h-0 flex-1 flex-col justify-center px-1">
+            <div className="mx-auto flex w-full max-w-sm flex-col items-center text-center gap-5 -translate-y-[6vh] sm:-translate-y-10">
+              <Olie state="calm" size={100} />
+              <h1 className="text-xl font-semibold leading-snug text-olie-text">
+                Quer que eu me lembre de tudo que você me contou? É só criar sua
+                conta gratuita. Enviamos um link mágico por email — sem senha para
+                decorar.
+              </h1>
+              <label htmlFor="onb-email" className="sr-only">
+                Email
+              </label>
+              <input
+                id="onb-email"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="seu@email.com"
+                className="w-full rounded-2xl border border-olie-border bg-white/90 px-4 py-3.5 text-[15px] text-olie-text shadow-sm placeholder:text-olie-muted focus:border-olie-accent focus:outline-none focus:ring-2 focus:ring-olie-accent/35"
+              />
+              {authError && (
+                <p className="w-full text-left text-sm text-red-800" role="alert">
+                  {authError}
+                </p>
+              )}
+              <div className="flex w-full flex-col gap-3 pt-2">
+                <button
+                  type="button"
+                  disabled={authBusy}
+                  onClick={() => void sendMagicLink()}
+                  className="w-full rounded-2xl bg-olie-accent py-3.5 text-[15px] font-semibold text-white shadow-md transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-olie-accent/50 focus:ring-offset-2 focus:ring-offset-[#f7faf9] disabled:opacity-50"
+                >
+                  {authBusy ? "Enviando…" : "Enviar link de acesso"}
+                </button>
+                <button
+                  type="button"
+                  onClick={finishWithoutAccount}
+                  className="text-center text-[14px] font-medium text-olie-text-secondary underline decoration-olie-border underline-offset-2 transition hover:text-olie-text"
+                >
+                  Prefiro continuar sem salvar meu histórico
+                </button>
+              </div>
             </div>
           </div>
         )}

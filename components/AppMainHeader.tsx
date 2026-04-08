@@ -1,5 +1,7 @@
 "use client";
 
+import { ChevronLeft } from "lucide-react";
+
 import Olie from "@/components/Olie";
 
 type Props = {
@@ -10,7 +12,7 @@ type Props = {
 /** Cabeçalho do chat: Voltar + Olie (ouvindo) + SOS */
 export function AppMainHeader({ onOpenSos, onBack }: Props) {
   return (
-    <header className="border-b border-olie-border/80 bg-[linear-gradient(160deg,#F0F7F4_0%,#F7FAF9_100%)]/95 px-4 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-sm sm:px-6">
+    <header className="sticky top-0 z-50 border-b border-olie-border/80 bg-[linear-gradient(160deg,#F0F7F4_0%,#F7FAF9_100%)]/95 px-4 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-sm sm:px-6">
       <div className="mx-auto flex max-w-2xl items-center justify-between gap-2">
         <button
           type="button"
@@ -18,9 +20,7 @@ export function AppMainHeader({ onOpenSos, onBack }: Props) {
           className="-ml-1 flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-1 text-olie-text-secondary transition hover:bg-olie-surface/80 hover:text-olie-text focus:outline-none focus:ring-2 focus:ring-olie-accent/35"
           aria-label="Voltar à seleção de modo"
         >
-          <span className="text-xl leading-none" aria-hidden>
-            ←
-          </span>
+          <ChevronLeft className="h-6 w-6 shrink-0" aria-hidden />
           <span className="text-[15px] font-medium text-olie-text">Voltar</span>
         </button>
 

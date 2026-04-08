@@ -1,5 +1,7 @@
 "use client";
 
+import { ChevronLeft } from "lucide-react";
+
 type Props = {
   onBack: () => void;
   onOpenSos: () => void;
@@ -21,9 +23,7 @@ export function MinimalHeader({
           className="-ml-1 flex h-10 min-w-[2.5rem] items-center justify-center rounded-full text-olie-text-secondary transition hover:bg-olie-surface/80 hover:text-olie-text focus:outline-none focus:ring-2 focus:ring-olie-accent/35"
           aria-label={backLabel}
         >
-          <span className="text-xl leading-none" aria-hidden>
-            ←
-          </span>
+          <ChevronLeft className="h-6 w-6 shrink-0" aria-hidden />
         </button>
 
         <button

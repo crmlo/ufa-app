@@ -1,5 +1,7 @@
 "use client";
 
+import { ChevronRight } from "lucide-react";
+
 import Olie from "@/components/Olie";
 
 import { CONTENT_CATEGORIES } from "./constants";
@@ -26,14 +28,15 @@ export function HomeTab({ displayName, onOpenOlie }: Props) {
       <button
         type="button"
         onClick={onOpenOlie}
-        className="group relative flex w-full overflow-hidden rounded-2xl border-[0.5px] border-olie-border bg-[linear-gradient(135deg,#F0F7F4_0%,#C8DDD7_100%)] p-4 text-left shadow-sm transition hover:opacity-[0.98] focus:outline-none focus:ring-2 focus:ring-olie-accent/35 active:scale-[0.99]"
+        className="group relative flex w-full overflow-hidden rounded-2xl border-[0.5px] border-olie-border bg-[linear-gradient(135deg,#F0F7F4_0%,#C8DDD7_100%)] px-4 pb-3 pt-4 text-left shadow-sm transition hover:opacity-[0.98] focus:outline-none focus:ring-2 focus:ring-olie-accent/35 active:scale-[0.99]"
       >
         <div className="flex min-w-0 flex-1 flex-col gap-1 pr-3">
           <span className="text-lg font-semibold text-olie-text">
             Estou em crise
           </span>
-          <span className="text-sm font-medium text-olie-text-secondary">
-            Fale com a Olie
+          <span className="inline-flex items-center gap-1 text-sm font-medium text-olie-text-secondary">
+            Fale com a Olie agora
+            <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
           </span>
         </div>
         <div
