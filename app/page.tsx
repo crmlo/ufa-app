@@ -5,6 +5,7 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { AutoEmergencyDrawer } from "@/components/AutoEmergencyDrawer";
 import BoxBreathing from "@/components/BoxBreathing";
 import { AppMainHeader, FloatingSosButton } from "@/components/AppMainHeader";
+import Olie from "@/components/Olie";
 import { BottomNav, type MainTabId } from "@/components/shell/BottomNav";
 import { ConteudosTab } from "@/components/shell/ConteudosTab";
 import { HistoricoTab } from "@/components/shell/HistoricoTab";
@@ -127,7 +128,6 @@ export default function Home() {
 
   const [inlineFeedbackPoll, setInlineFeedbackPoll] =
     useState<InlineFeedbackPoll | null>(null);
-  const [modePickerDrawerOpen, setModePickerDrawerOpen] = useState(false);
   const [boxBreathingOpen, setBoxBreathingOpen] = useState(false);
 
   const [sosDrawerOpen, setSosDrawerOpen] = useState(false);
@@ -187,7 +187,6 @@ export default function Home() {
   const lockBodyScroll =
     !!autoEmergency ||
     socorroInitialDrawer ||
-    modePickerDrawerOpen ||
     boxBreathingOpen ||
     sosDrawerOpen;
 
@@ -259,7 +258,6 @@ export default function Home() {
     setMessages([]);
     setConversationEnded(false);
     setSocorroInitialDrawer(false);
-    setModePickerDrawerOpen(false);
     setInlineFeedbackPoll(null);
     setBoxBreathingOpen(false);
     setSosDrawerOpen(false);
@@ -287,6 +285,12 @@ export default function Home() {
     setUserEmail(null);
   }
 
+  /** Abre o chat da Olie direto no modo crise (drawer de sintomas). */
+  function openOlieCrisisMode() {
+    setOlieFlowOpen(true);
+    selectMode("socorro");
+  }
+
   function selectMode(next: ChatMode) {
     setSessionId(crypto.randomUUID());
     setMode(next);
@@ -294,7 +298,6 @@ export default function Home() {
     setSocorroSelected([]);
     setSocorroDrawerFreeText("");
     setInlineFeedbackPoll(null);
-    setModePickerDrawerOpen(false);
     setSocorroInitialDrawer(next === "socorro");
     setAutoEmergency(null);
     setMessages([
@@ -608,7 +611,7 @@ export default function Home() {
             {mainTab === "home" && (
               <HomeTab
                 displayName={displayName}
-                onOpenOlie={() => setModePickerDrawerOpen(true)}
+                onOpenOlie={openOlieCrisisMode}
               />
             )}
             {mainTab === "conteudos" && <ConteudosTab />}
@@ -624,70 +627,12 @@ export default function Home() {
           <BottomNav
             active={mainTab}
             onChange={setMainTab}
-            onOliePress={() => setModePickerDrawerOpen(true)}
+            onOliePress={openOlieCrisisMode}
           />
         </div>
-        {modePickerDrawerOpen && (
-          <>
-            <div
-              className="ufie-drawer-backdrop fixed inset-0 z-40 bg-[#3d3429]/25"
-              aria-hidden
-              onClick={() => setModePickerDrawerOpen(false)}
-            />
-            <div
-              className="ufie-drawer-sheet fixed bottom-0 left-0 right-0 z-50 flex max-h-[min(88vh,520px)] flex-col rounded-t-3xl border border-blue-100 border-b-0 bg-white shadow-[0_-12px_48px_rgba(60,40,20,0.14)]"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="mode-picker-title"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex shrink-0 flex-col items-center pt-3 pb-1">
-                <div className="h-1.5 w-11 rounded-full bg-blue-200/70" aria-hidden />
-              </div>
-              <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-                <h2 id="mode-picker-title" className="text-lg font-semibold leading-snug text-slate-800">
-                  Como você quer começar agora?
-                </h2>
-                <div className="mt-4 flex flex-col gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOlieFlowOpen(true);
-                      selectMode("apoio");
-                    }}
-                    className="w-full min-h-[3.25rem] rounded-2xl border border-blue-200 bg-white px-4 py-3 text-left text-[15px] font-medium leading-snug text-slate-800 shadow-sm transition hover:border-blue-300/60 focus:outline-none focus:ring-2 focus:ring-blue-300/70 active:scale-[0.99]"
-                  >
-                    💬 Quero conversar um pouco
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOlieFlowOpen(true);
-                      selectMode("socorro");
-                    }}
-                    className="w-full min-h-[3.25rem] rounded-2xl border border-blue-200 bg-white px-4 py-3 text-left text-[15px] font-medium leading-snug text-slate-800 shadow-sm transition hover:border-blue-300/60 focus:outline-none focus:ring-2 focus:ring-blue-300/70 active:scale-[0.99]"
-                  >
-                    ⚡ Estou em crise
-                  </button>
-                </div>
-              </div>
-              <div className="shrink-0 border-t border-blue-100 bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
-                <button
-                  type="button"
-                  onClick={() => setModePickerDrawerOpen(false)}
-                  className="w-full rounded-xl border border-blue-200 py-2.5 text-[14px] font-medium text-slate-600 hover:bg-blue-50/80"
-                >
-                  Fechar
-                </button>
-              </div>
-            </div>
-          </>
-        )}
       </>
     );
   }
-
-  if (mode === null && olieFlowOpen) return null;
 
   if (!mode) {
     return null;
@@ -712,6 +657,9 @@ export default function Home() {
       />
 
       <main className="relative mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 pb-6 pt-4 sm:px-6">
+        <div className="mb-3 flex justify-center">
+          <Olie state="listening" size={56} />
+        </div>
         <div
           className="flex min-h-[min(420px,50vh)] flex-1 flex-col gap-3 overflow-y-auto rounded-2xl border border-blue-100 bg-white p-4 shadow-[0_1px_3px_rgba(30,58,138,0.06)] sm:p-5"
           role="log"
@@ -724,6 +672,11 @@ export default function Home() {
                 m.role === "user" ? "flex justify-end" : "flex justify-start"
               }
             >
+              {m.role === "assistant" && m.opening && (
+                <div className="mr-2 flex shrink-0 flex-col justify-end pb-0.5">
+                  <Olie state="hug" size={44} />
+                </div>
+              )}
               <div
                 className={
                   m.role === "user"
@@ -797,17 +750,8 @@ export default function Home() {
             </div>
           )}
           {pending && (
-            <div className="flex justify-start py-1">
-              <div
-                className="ufie-presence"
-                aria-hidden
-                title="Olie está aqui"
-              >
-                <div className="ufie-presence__halo" />
-                <div className="ufie-presence__core">
-                  <div className="ufie-presence__glow" />
-                </div>
-              </div>
+            <div className="flex items-center justify-start gap-2 py-1">
+              <Olie state="listening" size={40} />
               <span className="sr-only">Olie está respondendo</span>
             </div>
           )}

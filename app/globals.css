@@ -160,6 +160,22 @@ body {
   }
 }
 
+@keyframes breathe {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.olie-breathe {
+  animation: breathe 4s ease-in-out infinite;
+}
+
 @keyframes box-counter-pulse {
   0%,
   100% {
@@ -190,6 +206,9 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .olie-breathe {
+    animation: none;
+  }
   .ufie-drawer-backdrop {
     animation: none;
     opacity: 1;

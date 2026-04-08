@@ -1,5 +1,7 @@
 "use client";
 
+import Olie from "@/components/Olie";
+
 export type MainTabId = "home" | "conteudos" | "historico" | "perfil";
 
 type Props = {
@@ -50,10 +52,10 @@ export function BottomNav({ active, onChange, onOliePress }: Props) {
           <button
             type="button"
             onClick={onOliePress}
-            className="-mt-7 flex h-[3.35rem] w-[3.35rem] shrink-0 items-center justify-center rounded-full bg-blue-500 text-xl shadow-[0_6px_20px_rgba(37,99,235,0.45)] ring-4 ring-white transition hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-200 active:scale-[0.98]"
-            aria-label="Falar com a Olie"
+            className="-mt-7 flex h-[3.35rem] w-[3.35rem] shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue-500 shadow-[0_6px_20px_rgba(37,99,235,0.45)] ring-4 ring-white transition hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-200 active:scale-[0.98]"
+            aria-label="Estou em crise — falar com a Olie"
           >
-            <span aria-hidden>💬</span>
+            <Olie state="calm" size={48} className="rounded-full object-cover" />
           </button>
           <span className="mt-1 text-[10px] font-semibold text-blue-600">
             Olie

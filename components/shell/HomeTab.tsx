@@ -1,5 +1,7 @@
 "use client";
 
+import Olie from "@/components/Olie";
+
 import { CONTENT_CATEGORIES } from "./constants";
 
 type Props = {
@@ -24,22 +26,19 @@ export function HomeTab({ displayName, onOpenOlie }: Props) {
         onClick={onOpenOlie}
         className="group relative flex w-full overflow-hidden rounded-2xl border border-blue-200/80 bg-gradient-to-br from-blue-100/90 via-blue-50 to-white p-4 text-left shadow-[0_4px_20px_rgba(30,64,175,0.1)] ring-1 ring-blue-100/60 transition hover:border-blue-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-300/70 active:scale-[0.99]"
       >
-        <div className="flex min-w-0 flex-1 flex-col gap-3 pr-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-1 pr-3">
           <span className="text-lg font-semibold text-blue-950">
-            Falar com a Olie
+            Estou em crise
           </span>
-          <span className="inline-flex items-center gap-1 text-sm font-medium text-blue-700">
-            Começar
-            <span aria-hidden className="transition group-hover:translate-x-0.5">
-              →
-            </span>
+          <span className="text-sm font-medium text-blue-700/90">
+            Fale com a Olie
           </span>
         </div>
         <div
-          className="flex h-[5.5rem] w-24 shrink-0 items-center justify-center rounded-xl border border-dashed border-blue-200/80 bg-blue-50/50 text-[11px] text-blue-400/90"
+          className="flex h-[5.5rem] w-24 shrink-0 items-center justify-center"
           aria-hidden
         >
-          Mascote
+          <Olie state="welcoming" size={88} />
         </div>
       </button>
 
