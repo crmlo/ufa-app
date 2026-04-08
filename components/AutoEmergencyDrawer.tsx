@@ -16,22 +16,22 @@ export function AutoEmergencyDrawer({ kind, onClose }: Props) {
         onClick={onClose}
       />
       <div
-        className="ufie-drawer-sheet fixed bottom-0 left-0 right-0 z-[140] flex max-h-[min(88vh,560px)] flex-col rounded-t-3xl border border-blue-100 border-b-0 bg-white shadow-[0_-12px_48px_rgba(30,58,138,0.12)]"
+        className="ufie-drawer-sheet fixed bottom-0 left-0 right-0 z-[140] flex max-h-[min(88vh,560px)] flex-col rounded-t-3xl border border-olie-border/90 border-b-0 bg-white shadow-[0_-12px_48px_rgba(26,26,46,0.08)]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="auto-emergency-title"
       >
-        <div className="relative shrink-0 border-b border-blue-100 px-4 pb-3 pt-3">
+        <div className="relative shrink-0 border-b border-olie-border/80 px-4 pb-3 pt-3">
           <div className="flex justify-center pb-1">
             <div
-              className="h-1.5 w-11 rounded-full bg-blue-200/80"
+              className="h-1.5 w-11 rounded-full bg-olie-border"
               aria-hidden
             />
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-2 top-2 flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-blue-50 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300/60"
+            className="absolute right-2 top-2 flex h-10 w-10 items-center justify-center rounded-full text-olie-text-secondary transition hover:bg-olie-surface hover:text-olie-text focus:outline-none focus:ring-2 focus:ring-olie-accent/35"
             aria-label="Fechar"
           >
             <svg
@@ -74,10 +74,10 @@ function TelButton({
   return (
     <a
       href={href}
-      className={`flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-2xl px-4 text-center text-[15px] font-semibold leading-snug shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-white ${
+      className={`flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-2xl px-4 text-center text-[15px] font-semibold leading-snug shadow-sm transition focus:outline-none focus:ring-2 focus:ring-olie-accent/45 focus:ring-offset-2 focus:ring-offset-white ${
         isPrimary
-          ? "bg-blue-500 text-white hover:bg-blue-600"
-          : "border-2 border-blue-200 bg-white text-slate-800 hover:bg-blue-50"
+          ? "bg-olie-accent text-white hover:opacity-95"
+          : "border-2 border-olie-border bg-white text-olie-text hover:bg-olie-surface/80"
       }`}
     >
       <span className="text-xl" aria-hidden>
@@ -93,7 +93,7 @@ function ViolenceContent() {
     <>
       <h2
         id="auto-emergency-title"
-        className="text-lg font-semibold leading-snug text-slate-800"
+        className="text-lg font-semibold leading-snug text-olie-text"
       >
         Você está em perigo?
       </h2>
@@ -120,7 +120,7 @@ function MedicalContent() {
     <>
       <h2
         id="auto-emergency-title"
-        className="text-lg font-semibold leading-snug text-slate-800"
+        className="text-lg font-semibold leading-snug text-olie-text"
       >
         Precisa de ajuda médica?
       </h2>
@@ -147,7 +147,7 @@ function CrisisContent() {
     <>
       <h2
         id="auto-emergency-title"
-        className="text-lg font-semibold leading-snug text-slate-800"
+        className="text-lg font-semibold leading-snug text-olie-text"
       >
         Você não está sozinha
       </h2>
@@ -158,13 +158,13 @@ function CrisisContent() {
           label="Falar com alguém do suporte emocional agora — 188"
           variant="primary"
         />
-        <p className="text-center text-[14px] leading-relaxed text-slate-600">
+        <p className="text-center text-[14px] leading-relaxed text-olie-text-secondary">
           Prefere o chat? Acesse{" "}
           <a
             href="https://cvv.org.br"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-medium text-blue-600 underline decoration-blue-200 underline-offset-2 hover:text-blue-700"
+            className="font-medium text-olie-text underline decoration-olie-border underline-offset-2 hover:text-olie-text-secondary"
           >
             cvv.org.br
           </a>

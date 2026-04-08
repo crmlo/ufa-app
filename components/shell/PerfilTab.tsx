@@ -12,30 +12,30 @@ export function PerfilTab({ displayName, email, onSignOut }: Props) {
   return (
     <div className="flex flex-col gap-8 pb-4 pt-2">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-800">
+        <h1 className="text-2xl font-semibold tracking-tight text-olie-text">
           Perfil
         </h1>
       </header>
 
-      <div className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm ring-1 ring-blue-50/80">
-        <p className="text-lg font-semibold text-slate-800">{name}</p>
+      <div className="rounded-2xl border border-olie-border/80 bg-white/90 p-5 shadow-sm ring-1 ring-olie-border/40">
+        <p className="text-lg font-semibold text-olie-text">{name}</p>
         {email ? (
-          <p className="mt-1 text-sm text-slate-500">{email}</p>
+          <p className="mt-1 text-sm text-olie-text-secondary">{email}</p>
         ) : (
-          <p className="mt-1 text-sm text-slate-400">Não logado ou sem e-mail</p>
+          <p className="mt-1 text-sm text-olie-text-secondary">Não logado ou sem e-mail</p>
         )}
       </div>
 
       <nav className="flex flex-col gap-2" aria-label="Opções do perfil">
         <button
           type="button"
-          className="rounded-2xl border border-blue-100 bg-white px-4 py-3.5 text-left text-[15px] font-medium text-slate-700 shadow-sm ring-1 ring-blue-50/60 transition hover:bg-blue-50/50 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          className="rounded-2xl border border-olie-border/80 bg-white/90 px-4 py-3.5 text-left text-[15px] font-medium text-olie-text shadow-sm ring-1 ring-olie-border/35 transition hover:bg-olie-surface/60 focus:outline-none focus:ring-2 focus:ring-olie-accent/30"
         >
           Editar perfil
         </button>
         <button
           type="button"
-          className="rounded-2xl border border-blue-100 bg-white px-4 py-3.5 text-left text-[15px] font-medium text-slate-700 shadow-sm ring-1 ring-blue-50/60 transition hover:bg-blue-50/50 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          className="rounded-2xl border border-olie-border/80 bg-white/90 px-4 py-3.5 text-left text-[15px] font-medium text-olie-text shadow-sm ring-1 ring-olie-border/35 transition hover:bg-olie-surface/60 focus:outline-none focus:ring-2 focus:ring-olie-accent/30"
         >
           Assinar Premium
         </button>

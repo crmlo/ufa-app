@@ -1,36 +1,35 @@
-type ChatNav = {
-  modeLabel: string;
-  modeDescription: string;
-  variant: "apoio" | "socorro";
-  onBack: () => void;
-};
+"use client";
+
+import Olie from "@/components/Olie";
 
 type Props = {
   onOpenSos: () => void;
-  chatNavigation: ChatNav;
+  onBack: () => void;
 };
 
-/** Cabeçalho do chat: Voltar + SOS; tag de modo centralizada (sem saudação nem marca). */
-export function AppMainHeader({ onOpenSos, chatNavigation }: Props) {
-  const modeChipClass =
-    chatNavigation.variant === "apoio"
-      ? "inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[12px] font-semibold uppercase tracking-wide text-blue-800"
-      : "inline-flex items-center rounded-full border border-blue-300 bg-blue-100 px-3 py-1 text-[12px] font-semibold uppercase tracking-wide text-blue-900";
-
+/** Cabeçalho do chat: Voltar + Olie (ouvindo) + SOS */
+export function AppMainHeader({ onOpenSos, onBack }: Props) {
   return (
-    <header className="border-b border-blue-100 bg-slate-50/95 px-4 pb-4 pt-[max(1rem,env(safe-area-inset-top))] backdrop-blur-sm sm:px-6">
-      <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
+    <header className="border-b border-olie-border/80 bg-[linear-gradient(160deg,#F0F7F4_0%,#F7FAF9_100%)]/95 px-4 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-sm sm:px-6">
+      <div className="mx-auto flex max-w-2xl items-center justify-between gap-2">
         <button
           type="button"
-          onClick={chatNavigation.onBack}
-          className="-ml-1 flex min-h-10 shrink-0 items-center gap-1.5 rounded-full px-1 text-slate-600 transition hover:bg-blue-50 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300/60"
+          onClick={onBack}
+          className="-ml-1 flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-1 text-olie-text-secondary transition hover:bg-olie-surface/80 hover:text-olie-text focus:outline-none focus:ring-2 focus:ring-olie-accent/35"
           aria-label="Voltar à seleção de modo"
         >
           <span className="text-xl leading-none" aria-hidden>
             ←
           </span>
-          <span className="text-[15px] font-medium">Voltar</span>
+          <span className="text-[15px] font-medium text-olie-text">Voltar</span>
         </button>
+
+        <div
+          className="flex min-w-0 flex-1 justify-center px-2"
+          aria-hidden
+        >
+          <Olie state="listening" size={40} />
+        </div>
 
         <button
           type="button"
@@ -52,15 +51,6 @@ export function AppMainHeader({ onOpenSos, chatNavigation }: Props) {
           </svg>
           SOS
         </button>
-      </div>
-
-      <div className="mx-auto mt-4 flex max-w-2xl justify-center px-2">
-        <span
-          className={modeChipClass}
-          title={chatNavigation.modeDescription}
-        >
-          {chatNavigation.modeLabel}
-        </span>
       </div>
     </header>
   );

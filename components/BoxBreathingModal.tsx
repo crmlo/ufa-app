@@ -78,7 +78,7 @@ export default function BoxBreathing({ onClose }: BoxBreathingProps) {
     >
       <div
         style={{
-          background: "#FAF5F0",
+          background: "#E0EEE9",
           borderRadius: 28,
           padding: "36px 32px 28px",
           display: "flex",
@@ -126,7 +126,7 @@ export default function BoxBreathing({ onClose }: BoxBreathingProps) {
             rx={RADIUS}
             ry={RADIUS}
             fill="none"
-            stroke="#C8C1E8"
+            stroke="#C8DDD7"
             strokeWidth={STROKE}
             strokeOpacity={0.25}
             strokeLinecap="round"
@@ -143,7 +143,7 @@ export default function BoxBreathing({ onClose }: BoxBreathingProps) {
             rx={RADIUS}
             ry={RADIUS}
             fill="none"
-            stroke="#7B6FE8"
+            stroke="#5C8078"
             strokeWidth={STROKE}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -186,7 +186,7 @@ export default function BoxBreathing({ onClose }: BoxBreathingProps) {
           onClick={onClose}
           style={{
             background: "none",
-            border: "1.5px solid #C8C1E8",
+            border: "1.5px solid #C8DDD7",
             borderRadius: 12,
             padding: "10px 36px",
             fontSize: 16,

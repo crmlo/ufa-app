@@ -13,12 +13,12 @@ export function MinimalHeader({
   backLabel = "Voltar",
 }: Props) {
   return (
-    <header className="shrink-0 border-b border-blue-100 bg-slate-50/95 px-4 pb-4 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-sm">
+    <header className="shrink-0 border-b border-olie-border/80 bg-[linear-gradient(160deg,#F0F7F4_0%,#F7FAF9_100%)]/95 px-4 pb-4 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-sm">
       <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
         <button
           type="button"
           onClick={onBack}
-          className="-ml-1 flex h-10 min-w-[2.5rem] items-center justify-center rounded-full text-slate-600 transition hover:bg-blue-50 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300/60"
+          className="-ml-1 flex h-10 min-w-[2.5rem] items-center justify-center rounded-full text-olie-text-secondary transition hover:bg-olie-surface/80 hover:text-olie-text focus:outline-none focus:ring-2 focus:ring-olie-accent/35"
           aria-label={backLabel}
         >
           <span className="text-xl leading-none" aria-hidden>

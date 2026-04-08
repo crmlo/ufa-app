@@ -513,53 +513,53 @@ export default function Home() {
             onClick={() => setSosDrawerOpen(false)}
           />
           <div
-            className="ufie-drawer-sheet fixed bottom-0 left-0 right-0 z-[120] flex max-h-[min(90vh,560px)] flex-col rounded-t-3xl border border-blue-100 border-b-0 bg-white shadow-[0_-12px_48px_rgba(60,40,20,0.14)]"
+            className="ufie-drawer-sheet fixed bottom-0 left-0 right-0 z-[120] flex max-h-[min(90vh,560px)] flex-col rounded-t-3xl border border-olie-border/90 border-b-0 bg-white shadow-[0_-12px_48px_rgba(26,26,46,0.08)]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="sos-drawer-title"
           >
             <div className="flex shrink-0 flex-col items-center pt-3 pb-1">
-              <div className="h-1.5 w-11 rounded-full bg-blue-200/70" />
+              <div className="h-1.5 w-11 rounded-full bg-olie-border" />
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
               <h2
                 id="sos-drawer-title"
-                className="text-lg font-semibold text-slate-800"
+                className="text-lg font-semibold text-olie-text"
               >
                 Precisa de ajuda urgente?
               </h2>
-              <p className="mt-1 text-[13px] leading-snug text-slate-500">
+              <p className="mt-1 text-[13px] leading-snug text-olie-text-secondary">
                 Toque para ligar direto do celular.
               </p>
               <ul className="mt-4 flex flex-col gap-3">
                 {SOS_CONTACTS.map((c) => (
                   <li
                     key={c.tel}
-                    className="rounded-2xl border border-blue-100 bg-white/90 p-3 shadow-sm sm:p-4"
+                    className="rounded-2xl border border-olie-border/80 bg-white/90 p-3 shadow-sm sm:p-4"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex min-w-0 flex-1 items-center gap-3">
                         <span
-                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-xl"
+                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-olie-surface text-xl"
                           aria-hidden
                         >
                           {c.icon}
                         </span>
                         <div className="min-w-0">
-                          <p className="font-semibold text-slate-800">
+                          <p className="font-semibold text-olie-text">
                             {c.name}
                           </p>
-                          <p className="text-[13px] leading-snug text-slate-600">
+                          <p className="text-[13px] leading-snug text-olie-text-secondary">
                             {c.description}
                           </p>
-                          <p className="mt-0.5 text-[12px] text-slate-500">
+                          <p className="mt-0.5 text-[12px] text-olie-text-secondary">
                             {c.tel}
                           </p>
                         </div>
                       </div>
                       <a
                         href={`tel:${c.tel}`}
-                        className="shrink-0 rounded-xl bg-blue-500 px-3.5 py-2.5 text-[13px] font-semibold text-white shadow-sm transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        className="shrink-0 rounded-xl bg-olie-accent px-3.5 py-2.5 text-[13px] font-semibold text-white shadow-sm transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-olie-accent/45"
                       >
                         Ligar
                       </a>
@@ -568,11 +568,11 @@ export default function Home() {
                 ))}
               </ul>
             </div>
-            <div className="shrink-0 border-t border-blue-100 bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
+            <div className="shrink-0 border-t border-olie-border/80 bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
               <button
                 type="button"
                 onClick={() => setSosDrawerOpen(false)}
-                className="w-full rounded-xl border border-blue-200 py-2.5 text-[14px] font-medium text-slate-600 hover:bg-blue-50/80"
+                className="w-full rounded-xl border border-olie-border py-2.5 text-[14px] font-medium text-olie-text-secondary hover:bg-olie-surface/80"
               >
                 Fechar
               </button>
@@ -584,7 +584,7 @@ export default function Home() {
   if (!onboardingReady) {
     return (
       <div
-        className="min-h-screen bg-slate-50"
+        className="min-h-screen bg-transparent"
         aria-busy="true"
         aria-label="Carregando"
       />
@@ -606,7 +606,7 @@ export default function Home() {
       <>
         <FloatingSosButton onOpenSos={() => setSosDrawerOpen(true)} />
         {sosDrawerPortal}
-        <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800">
+        <div className="flex min-h-screen flex-col bg-transparent text-olie-text">
           <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col overflow-y-auto px-4 pb-[calc(6.25rem+env(safe-area-inset-bottom))] pt-4 sm:px-6">
             {mainTab === "home" && (
               <HomeTab
@@ -638,30 +638,18 @@ export default function Home() {
     return null;
   }
 
-  const modeDescription =
-    mode === "apoio" ? "Conversa com calma" : "Presença imediata";
-
   return (
     <>
       {sosDrawerPortal}
-    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800">
+    <div className="flex min-h-screen flex-col bg-transparent text-olie-text">
       <AppMainHeader
         onOpenSos={() => setSosDrawerOpen(true)}
-        chatNavigation={{
-          modeLabel:
-            mode === "apoio" ? "Apoio" : "Ajuda imediata",
-          modeDescription,
-          variant: mode,
-          onBack: goToModeSelection,
-        }}
+        onBack={goToModeSelection}
       />
 
       <main className="relative mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 pb-6 pt-4 sm:px-6">
-        <div className="mb-3 flex justify-center">
-          <Olie state="listening" size={56} />
-        </div>
         <div
-          className="flex min-h-[min(420px,50vh)] flex-1 flex-col gap-3 overflow-y-auto rounded-2xl border border-blue-100 bg-white p-4 shadow-[0_1px_3px_rgba(30,58,138,0.06)] sm:p-5"
+          className="flex min-h-[min(420px,50vh)] flex-1 flex-col gap-3 overflow-y-auto rounded-2xl border border-olie-border/90 bg-white/90 p-4 shadow-sm sm:p-5"
           role="log"
           aria-live="polite"
         >
@@ -672,16 +660,11 @@ export default function Home() {
                 m.role === "user" ? "flex justify-end" : "flex justify-start"
               }
             >
-              {m.role === "assistant" && m.opening && (
-                <div className="mr-2 flex shrink-0 flex-col justify-end pb-0.5">
-                  <Olie state="hug" size={44} />
-                </div>
-              )}
               <div
                 className={
                   m.role === "user"
-                    ? "max-w-[85%] rounded-2xl rounded-br-md bg-gradient-to-br from-blue-100 to-blue-50 px-4 py-2.5 text-[15px] leading-relaxed text-slate-800 shadow-sm ring-1 ring-blue-200/50"
-                    : "max-w-[85%] rounded-2xl rounded-bl-md border border-blue-100 bg-slate-100/90 px-4 py-2.5 text-[15px] leading-relaxed text-slate-800 shadow-sm"
+                    ? "max-w-[85%] rounded-2xl rounded-br-md bg-gradient-to-br from-olie-surface to-olie-bg px-4 py-2.5 text-[15px] leading-relaxed text-olie-text shadow-sm ring-1 ring-olie-border/60"
+                    : "max-w-[85%] rounded-2xl rounded-bl-md border border-olie-border/80 bg-olie-surface/50 px-4 py-2.5 text-[15px] leading-relaxed text-olie-text shadow-sm"
                 }
               >
                 <p className="whitespace-pre-line">{m.text}</p>
@@ -752,6 +735,11 @@ export default function Home() {
           {pending && (
             <div className="flex items-center justify-start gap-2 py-1">
               <Olie state="listening" size={40} />
+              <span className="flex items-center gap-1" aria-hidden>
+                <span className="olie-typing-dot inline-block h-1.5 w-1.5 rounded-full bg-olie-muted" />
+                <span className="olie-typing-dot inline-block h-1.5 w-1.5 rounded-full bg-olie-muted" />
+                <span className="olie-typing-dot inline-block h-1.5 w-1.5 rounded-full bg-olie-muted" />
+              </span>
               <span className="sr-only">Olie está respondendo</span>
             </div>
           )}
@@ -762,7 +750,7 @@ export default function Home() {
             <button
               type="button"
               onClick={goToModeSelection}
-              className="rounded-full border border-blue-200/80 bg-white/90 px-4 py-2 text-[13px] font-medium text-slate-500 shadow-sm transition hover:border-blue-300 hover:bg-blue-50/60 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-200/80"
+              className="rounded-full border border-olie-border/90 bg-white/90 px-4 py-2 text-[13px] font-medium text-olie-text-secondary shadow-sm transition hover:border-olie-accent/40 hover:bg-olie-surface/70 hover:text-olie-text focus:outline-none focus:ring-2 focus:ring-olie-accent/30"
             >
               Voltar para o início
             </button>
@@ -793,7 +781,7 @@ export default function Home() {
                     key={`${i}-${label}`}
                     type="button"
                     onClick={() => sendUserMessage(label)}
-                    className="max-w-full rounded-full border border-blue-200 bg-gradient-to-b from-[#fffbf5] to-blue-100/90 px-3 py-2 text-left text-[13px] leading-snug text-slate-800 shadow-sm ring-1 ring-blue-100/60 transition hover:border-blue-300 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-300/70 active:scale-[0.98] sm:max-w-[calc(50%-0.25rem)] sm:text-center"
+                    className="max-w-full rounded-full border border-olie-border bg-gradient-to-b from-white to-olie-surface/90 px-3 py-2 text-left text-[13px] leading-snug text-olie-text shadow-sm ring-1 ring-olie-border/50 transition hover:border-olie-accent/45 hover:bg-olie-surface focus:outline-none focus:ring-2 focus:ring-olie-accent/35 active:scale-[0.98] sm:max-w-[calc(50%-0.25rem)] sm:text-center"
                   >
                     {label}
                   </button>
@@ -805,7 +793,7 @@ export default function Home() {
         {showChatForm && (
           <form
             onSubmit={handleSubmit}
-            className="mt-4 flex gap-3 rounded-2xl border border-blue-100 bg-white/90 p-2 shadow-[0_2px_8px_rgba(139,94,60,0.07)] ring-1 ring-blue-50/60 backdrop-blur-sm"
+            className="mt-4 flex gap-3 rounded-2xl border border-olie-border/90 bg-white/90 p-2 shadow-sm ring-1 ring-olie-border/40 backdrop-blur-sm"
           >
             <label htmlFor="chat-input" className="sr-only">
               Mensagem
@@ -822,11 +810,11 @@ export default function Home() {
               }}
               placeholder="Escreva sua mensagem…"
               autoComplete="off"
-              className="min-h-12 flex-1 rounded-xl border-0 bg-transparent px-3 text-[15px] text-slate-800 placeholder:text-[#b0a090] focus:outline-none focus:ring-2 focus:ring-blue-200/80 disabled:opacity-60"
+              className="min-h-12 flex-1 rounded-xl border-0 bg-transparent px-3 text-[15px] text-olie-text placeholder:text-olie-muted focus:outline-none focus:ring-2 focus:ring-olie-accent/35 disabled:opacity-60"
             />
             <button
               type="submit"
-              className="shrink-0 rounded-xl bg-blue-500 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-slate-50 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+              className="shrink-0 rounded-xl bg-olie-accent px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-olie-accent/45 focus:ring-offset-2 focus:ring-offset-[#f7faf9] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
             >
               {pending ? "…" : "Enviar"}
             </button>
@@ -845,7 +833,7 @@ export default function Home() {
             onClick={() => setSocorroInitialDrawer(false)}
           />
           <div
-            className="ufie-drawer-sheet fixed bottom-0 left-0 right-0 z-50 flex max-h-[min(88vh,640px)] flex-col rounded-t-3xl border border-blue-100 border-b-0 bg-white shadow-[0_-12px_48px_rgba(60,40,20,0.14)]"
+            className="ufie-drawer-sheet fixed bottom-0 left-0 right-0 z-50 flex max-h-[min(88vh,640px)] flex-col rounded-t-3xl border border-olie-border/90 border-b-0 bg-white shadow-[0_-12px_48px_rgba(26,26,46,0.08)]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="socorro-drawer-heading"
@@ -865,7 +853,7 @@ export default function Home() {
               }}
             >
               <div
-                className="h-1.5 w-11 rounded-full bg-blue-200/70"
+                className="h-1.5 w-11 rounded-full bg-olie-border"
                 aria-hidden
               />
             </div>
@@ -874,14 +862,14 @@ export default function Home() {
               <div className="flex items-start justify-between gap-3">
                 <h2
                   id="socorro-drawer-heading"
-                  className="text-lg font-semibold leading-snug text-slate-800"
+                  className="text-lg font-semibold leading-snug text-olie-text"
                 >
                   {SOCORRO_DRAWER_TITLE}
                 </h2>
                 <button
                   type="button"
                   onClick={() => setSocorroInitialDrawer(false)}
-                  className="shrink-0 text-[13px] font-medium text-slate-500 underline-offset-2 hover:text-slate-700 hover:underline"
+                  className="shrink-0 text-[13px] font-medium text-olie-text-secondary underline-offset-2 hover:text-olie-text hover:underline"
                 >
                   Fechar
                 </button>
@@ -895,10 +883,10 @@ export default function Home() {
                       key={label}
                       type="button"
                       onClick={() => toggleSocorroOption(label)}
-                      className={`w-full min-h-[3.25rem] rounded-2xl border px-4 py-3 text-left text-[15px] leading-snug transition focus:outline-none focus:ring-2 focus:ring-blue-300/70 active:scale-[0.99] ${
+                      className={`w-full min-h-[3.25rem] rounded-2xl border px-4 py-3 text-left text-[15px] leading-snug transition focus:outline-none focus:ring-2 focus:ring-olie-accent/40 active:scale-[0.99] ${
                         selected
-                          ? "border-blue-400/70 bg-blue-100/90 text-slate-800 ring-2 ring-blue-200/50 shadow-sm"
-                          : "border-blue-200 bg-white text-slate-800 shadow-sm hover:border-blue-300/60"
+                          ? "border-olie-accent bg-olie-surface text-olie-text ring-2 ring-olie-border shadow-sm"
+                          : "border-olie-border bg-white text-olie-text shadow-sm hover:border-olie-accent/45"
                       }`}
                     >
                       {label}
@@ -917,18 +905,18 @@ export default function Home() {
                     onChange={(e) => setSocorroDrawerFreeText(e.target.value)}
                     placeholder="Se preferir, escreva aqui"
                     autoComplete="off"
-                    className="w-full min-h-[3.25rem] rounded-2xl border border-blue-200 bg-white px-4 py-3 text-[15px] text-slate-800 shadow-sm placeholder:text-[#b0a090] focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-300/60"
+                    className="w-full min-h-[3.25rem] rounded-2xl border border-olie-border bg-white px-4 py-3 text-[15px] text-olie-text shadow-sm placeholder:text-olie-muted focus:border-olie-accent focus:outline-none focus:ring-2 focus:ring-olie-accent/35"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="shrink-0 border-t border-blue-100 bg-white px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <div className="shrink-0 border-t border-olie-border/80 bg-white px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
               <button
                 type="button"
                 disabled={!canSubmitSocorroDrawer || pending}
                 onClick={handleSocorroDrawerSubmit}
-                className="flex min-h-[3rem] w-full items-center justify-center rounded-2xl bg-blue-500 text-[15px] font-semibold text-white shadow-md transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-white disabled:pointer-events-none disabled:opacity-45"
+                className="flex min-h-[3rem] w-full items-center justify-center rounded-2xl bg-olie-accent text-[15px] font-semibold text-white shadow-md transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-olie-accent/45 focus:ring-offset-2 focus:ring-offset-white disabled:pointer-events-none disabled:opacity-45"
               >
                 Enviar
               </button>

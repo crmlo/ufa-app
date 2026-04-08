@@ -326,7 +326,9 @@ export async function POST(req: Request) {
       parseBreathingExercise(afterEmergency);
     const { text: afterFeedback, feedback_prompt: hasFeedbackMarker } =
       parseFeedbackRequest(afterBreathing);
-    let { reply, quick_replies } = parseQuickReplies(afterFeedback);
+    const parsedQuick = parseQuickReplies(afterFeedback);
+    let reply = parsedQuick.reply;
+    const quick_replies = parsedQuick.quick_replies;
     const { text: replyAfterEnd, conversation_end } =
       parseConversationEnd(reply);
     reply = replyAfterEnd;

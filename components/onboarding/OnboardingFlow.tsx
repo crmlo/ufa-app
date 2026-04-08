@@ -20,6 +20,7 @@ import type {
   NeuroSelections,
   PendingProfilePayload,
 } from "@/lib/onboarding/types";
+import Olie from "@/components/Olie";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type Props = {
@@ -78,10 +79,10 @@ function toggleNeuro(prev: NeuroSelections, label: string): NeuroSelections {
 }
 
 function chipClass(selected: boolean): string {
-  return `rounded-full border px-3.5 py-2 text-left text-[13px] leading-snug transition focus:outline-none focus:ring-2 focus:ring-blue-300/60 active:scale-[0.99] ${
+  return `rounded-full border px-3.5 py-2 text-left text-[13px] leading-snug text-olie-text transition focus:outline-none focus:ring-2 focus:ring-olie-accent/40 active:scale-[0.99] ${
     selected
-      ? "border-blue-400/70 bg-blue-100/90 text-slate-800 ring-1 ring-blue-200/50"
-      : "border-blue-200/90 bg-white/90 text-slate-800 hover:border-blue-300/70"
+      ? "border-olie-accent bg-olie-surface ring-1 ring-olie-border"
+      : "border-olie-border/90 bg-white/90 hover:border-olie-accent/45"
   }`;
 }
 
@@ -365,10 +366,10 @@ export function OnboardingFlow({ onComplete }: Props) {
   const canContinueStep2 = nome.trim().length > 0;
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800">
-      <div className="sticky top-0 z-10 border-b border-blue-100 bg-slate-50/95 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-sm">
+    <div className="flex min-h-screen flex-col bg-[linear-gradient(160deg,#F0F7F4_0%,#F7FAF9_100%)] text-olie-text">
+      <div className="sticky top-0 z-10 border-b border-olie-border/80 bg-[linear-gradient(160deg,#F0F7F4_0%,#F7FAF9_100%)]/95 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-sm">
         <div
-          className="mx-auto mb-3 h-1.5 max-w-md overflow-hidden rounded-full bg-blue-100/90"
+          className="mx-auto mb-3 h-1.5 max-w-md overflow-hidden rounded-full bg-olie-border/50"
           role="progressbar"
           aria-valuenow={progressStep}
           aria-valuemin={1}
@@ -376,7 +377,7 @@ export function OnboardingFlow({ onComplete }: Props) {
           aria-label={`Etapa ${progressStep} de ${TOTAL_ONBOARDING_STEPS}`}
         >
           <div
-            className="h-full rounded-full bg-blue-500 transition-[width] duration-300 ease-out"
+            className="h-full rounded-full bg-olie-accent transition-[width] duration-300 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -391,7 +392,7 @@ export function OnboardingFlow({ onComplete }: Props) {
               }
               setStep((s) => Math.max(1, s - 1));
             }}
-            className="text-[13px] font-medium text-slate-500 underline-offset-2 hover:text-slate-600 hover:underline"
+            className="text-[13px] font-medium text-olie-text-secondary underline-offset-2 hover:text-olie-text hover:underline"
           >
             Voltar
           </button>
@@ -400,88 +401,94 @@ export function OnboardingFlow({ onComplete }: Props) {
 
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-6 pb-[max(2rem,env(safe-area-inset-bottom))] pt-6">
         {step === 1 && (
-          <div className="flex flex-1 flex-col justify-center gap-8">
-            <div className="space-y-4 text-left">
-              <p className="text-2xl font-semibold leading-snug text-slate-800">
-                Oi! Eu sou a Olie 💛
-              </p>
-              <p className="text-[15px] leading-relaxed text-slate-800">
-                Eu vou estar aqui com você sempre que precisar, nos momentos
-                difíceis, no dia a dia e principalmente quando a ansiedade
-                apertar.
-              </p>
-              <p className="text-[15px] leading-relaxed text-slate-700">
-                Antes da gente começar, me conta um pouquinho sobre você? Assim
-                eu consigo te ajudar de um jeito que faça sentido pra você.
-              </p>
-              <p className="text-[14px] leading-relaxed text-slate-500">
-                É bem rapidinho e leva menos de 1 minuto.
-              </p>
-            </div>
-            <div className="flex flex-col gap-3">
-              <button
-                type="button"
-                onClick={() => setStep(2)}
-                className="w-full rounded-2xl bg-blue-500 py-3.5 text-[15px] font-semibold text-white shadow-md transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-slate-50"
-              >
-                Começar
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setAuthError(null);
-                  setStep(STEP_LOGIN_EMAIL);
-                }}
-                className="w-full rounded-2xl border border-blue-200 bg-white py-3.5 text-[15px] font-medium text-blue-800 shadow-sm transition hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-200"
-              >
-                Já tenho conta
-              </button>
+          <div className="flex min-h-0 flex-1 flex-col justify-center px-1">
+            <div className="mx-auto flex w-full max-w-sm flex-col items-center text-center gap-6 -translate-y-[6vh] sm:-translate-y-10">
+              <Olie state="welcoming" size={140} />
+              <div className="space-y-4 text-olie-text">
+                <p className="text-2xl font-semibold leading-snug">
+                  Oi! Eu sou a Olie.
+                </p>
+                <p className="text-[15px] leading-relaxed">
+                  Eu vou estar aqui com você sempre que precisar, nos momentos
+                  difíceis, no dia a dia e principalmente quando a ansiedade
+                  apertar.
+                </p>
+                <p className="text-[15px] leading-relaxed text-olie-text-secondary">
+                  Antes da gente começar, me conta um pouquinho sobre você? Assim
+                  eu consigo te ajudar de um jeito que faça sentido pra você.
+                </p>
+                <p className="text-[14px] leading-relaxed text-olie-text-secondary">
+                  É bem rapidinho e leva menos de 1 minuto.
+                </p>
+              </div>
+              <div className="flex w-full flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  className="w-full rounded-2xl bg-olie-accent py-3.5 text-[15px] font-semibold text-white shadow-md transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-olie-accent/50 focus:ring-offset-2 focus:ring-offset-[#f7faf9]"
+                >
+                  Começar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthError(null);
+                    setStep(STEP_LOGIN_EMAIL);
+                  }}
+                  className="w-full rounded-2xl border border-olie-border bg-white/90 py-3.5 text-[15px] font-medium text-olie-text shadow-sm transition hover:bg-olie-surface/80 focus:outline-none focus:ring-2 focus:ring-olie-accent/35"
+                >
+                  Já tenho conta
+                </button>
+              </div>
             </div>
           </div>
         )}
 
         {step === STEP_LOGIN_EMAIL && (
-          <div className="flex flex-1 flex-col gap-5">
-            <h1 className="text-xl font-semibold leading-snug text-slate-800">
-              Entrar com seu email
-            </h1>
-            <p className="text-[14px] leading-relaxed text-slate-600">
-              Enviamos um link mágico para você acessar sua conta — sem senha.
-            </p>
-            <label htmlFor="onb-login-email" className="sr-only">
-              Email
-            </label>
-            <input
-              id="onb-login-email"
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu@email.com"
-              className="w-full rounded-2xl border border-blue-200 bg-white px-4 py-3.5 text-[15px] text-slate-800 shadow-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-300/60"
-            />
-            {authError && (
-              <p className="text-sm text-red-800" role="alert">
-                {authError}
+          <div className="flex min-h-0 flex-1 flex-col justify-center px-1">
+            <div className="mx-auto flex w-full max-w-sm flex-col items-center text-center gap-5 -translate-y-[6vh] sm:-translate-y-10">
+              <Olie state="calm" size={100} />
+              <h1 className="text-xl font-semibold leading-snug text-olie-text">
+                Entrar com seu email
+              </h1>
+              <p className="text-[14px] leading-relaxed text-olie-text-secondary">
+                Enviamos um link mágico para você acessar sua conta — sem senha.
               </p>
-            )}
-            <div className="mt-auto flex flex-col gap-3 pt-6">
-              <button
-                type="button"
-                disabled={authBusy}
-                onClick={() => void sendLoginMagicLink()}
-                className="w-full rounded-2xl bg-blue-500 py-3.5 text-[15px] font-semibold text-white shadow-md transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 disabled:opacity-50"
-              >
-                {authBusy ? "Enviando…" : "Enviar link de acesso"}
-              </button>
+              <label htmlFor="onb-login-email" className="sr-only">
+                Email
+              </label>
+              <input
+                id="onb-login-email"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="seu@email.com"
+                className="w-full rounded-2xl border border-olie-border bg-white/90 px-4 py-3.5 text-[15px] text-olie-text shadow-sm placeholder:text-olie-muted focus:border-olie-accent focus:outline-none focus:ring-2 focus:ring-olie-accent/35"
+              />
+              {authError && (
+                <p className="w-full text-left text-sm text-red-800" role="alert">
+                  {authError}
+                </p>
+              )}
+              <div className="flex w-full flex-col gap-3 pt-2">
+                <button
+                  type="button"
+                  disabled={authBusy}
+                  onClick={() => void sendLoginMagicLink()}
+                  className="w-full rounded-2xl bg-olie-accent py-3.5 text-[15px] font-semibold text-white shadow-md transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-olie-accent/50 focus:ring-offset-2 focus:ring-offset-[#f7faf9] disabled:opacity-50"
+                >
+                  {authBusy ? "Enviando…" : "Enviar link de acesso"}
+                </button>
+              </div>
             </div>
           </div>
         )}
 
         {step === 2 && (
           <div className="flex flex-1 flex-col gap-6">
-            <h1 className="text-xl font-semibold leading-snug text-slate-800">
+            <h1 className="text-xl font-semibold leading-snug text-olie-text">
               Como prefere que eu te chame?
             </h1>
             <label htmlFor="onb-nome" className="sr-only">
@@ -494,14 +501,14 @@ export function OnboardingFlow({ onComplete }: Props) {
               onChange={(e) => setNome(e.target.value)}
               placeholder="Seu nome ou apelido"
               autoComplete="name"
-              className="w-full rounded-2xl border border-blue-200 bg-white px-4 py-3.5 text-[15px] text-slate-800 shadow-sm placeholder:text-[#b0a090] focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-300/60"
+              className="w-full rounded-2xl border border-olie-border bg-white px-4 py-3.5 text-[15px] text-olie-text shadow-sm placeholder:text-olie-muted focus:border-olie-accent focus:outline-none focus:ring-2 focus:ring-olie-accent/35"
             />
             <div className="mt-auto pt-8">
               <button
                 type="button"
                 disabled={!canContinueStep2}
                 onClick={() => setStep(3)}
-                className="w-full rounded-2xl bg-blue-500 py-3.5 text-[15px] font-semibold text-white shadow-md transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-40"
+                className="w-full rounded-2xl bg-olie-accent py-3.5 text-[15px] font-semibold text-white shadow-md transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-olie-accent/50 focus:ring-offset-2 focus:ring-offset-[#f7faf9] disabled:pointer-events-none disabled:opacity-40"
               >
                 Continuar
               </button>
@@ -511,7 +518,7 @@ export function OnboardingFlow({ onComplete }: Props) {
 
         {step === 3 && (
           <div className="flex flex-1 flex-col gap-5">
-            <h1 className="text-xl font-semibold leading-snug text-slate-800">
+            <h1 className="text-xl font-semibold leading-snug text-olie-text">
               Tem alguma condição de saúde que devo saber?
             </h1>
             <div className="flex flex-wrap gap-2">
@@ -528,7 +535,7 @@ export function OnboardingFlow({ onComplete }: Props) {
             </div>
             {HEALTH_SECTIONS.map((sec) => (
               <div key={sec.title}>
-                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-olie-text-secondary">
                   {sec.title}
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -564,7 +571,7 @@ export function OnboardingFlow({ onComplete }: Props) {
                       setHealth((h) => ({ ...h, outra: e.target.value }))
                     }
                     placeholder="Qual condição?"
-                    className="mt-2 w-full rounded-2xl border border-blue-200 bg-white px-4 py-3 text-[15px] focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-300/60"
+                    className="mt-2 w-full rounded-2xl border border-olie-border bg-white px-4 py-3 text-[15px] text-olie-text placeholder:text-olie-muted focus:border-olie-accent focus:outline-none focus:ring-2 focus:ring-olie-accent/35"
                   />
                 </label>
               )}
@@ -573,7 +580,7 @@ export function OnboardingFlow({ onComplete }: Props) {
               <button
                 type="button"
                 onClick={() => setStep(4)}
-                className="w-full rounded-2xl bg-blue-500 py-3.5 text-[15px] font-semibold text-white shadow-md transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2"
+                className="w-full rounded-2xl bg-olie-accent py-3.5 text-[15px] font-semibold text-white shadow-md transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-olie-accent/50 focus:ring-offset-2 focus:ring-offset-[#f7faf9]"
               >
                 Continuar
               </button>
@@ -583,7 +590,7 @@ export function OnboardingFlow({ onComplete }: Props) {
 
         {step === 4 && (
           <div className="flex flex-1 flex-col gap-5">
-            <h1 className="text-xl font-semibold leading-snug text-slate-800">
+            <h1 className="text-xl font-semibold leading-snug text-olie-text">
               Você tem algum diagnóstico de neurodivergência?
             </h1>
             <div className="flex flex-wrap gap-2">
@@ -621,7 +628,7 @@ export function OnboardingFlow({ onComplete }: Props) {
                     setNeuro((n) => ({ ...n, outra: e.target.value }))
                   }
                   placeholder="Qual neurodivergência?"
-                  className="w-full rounded-2xl border border-blue-200 bg-white px-4 py-3 text-[15px] focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-300/60"
+                  className="w-full rounded-2xl border border-olie-border bg-white px-4 py-3 text-[15px] text-olie-text placeholder:text-olie-muted focus:border-olie-accent focus:outline-none focus:ring-2 focus:ring-olie-accent/35"
                 />
               </label>
             )}
@@ -629,7 +636,7 @@ export function OnboardingFlow({ onComplete }: Props) {
               <button
                 type="button"
                 onClick={() => setStep(5)}
-                className="w-full rounded-2xl bg-blue-500 py-3.5 text-[15px] font-semibold text-white shadow-md transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2"
+                className="w-full rounded-2xl bg-olie-accent py-3.5 text-[15px] font-semibold text-white shadow-md transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-olie-accent/50 focus:ring-offset-2 focus:ring-offset-[#f7faf9]"
               >
                 Continuar
               </button>
@@ -639,7 +646,7 @@ export function OnboardingFlow({ onComplete }: Props) {
 
         {step === 5 && (
           <div className="flex flex-1 flex-col gap-5">
-            <h1 className="text-xl font-semibold leading-snug text-slate-800">
+            <h1 className="text-xl font-semibold leading-snug text-olie-text">
               Como você costuma perceber que uma crise está chegando?
             </h1>
             <label htmlFor="onb-gatilhos" className="sr-only">
@@ -651,7 +658,7 @@ export function OnboardingFlow({ onComplete }: Props) {
               onChange={(e) => setGatilhos(e.target.value)}
               placeholder="Ex: coração acelera, fico irritada, perco o foco..."
               rows={5}
-              className="w-full resize-y rounded-2xl border border-blue-200 bg-white px-4 py-3.5 text-[15px] leading-relaxed text-slate-800 shadow-sm placeholder:text-[#b0a090] focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-300/60"
+              className="w-full resize-y rounded-2xl border border-olie-border bg-white px-4 py-3.5 text-[15px] leading-relaxed text-olie-text shadow-sm placeholder:text-olie-muted focus:border-olie-accent focus:outline-none focus:ring-2 focus:ring-olie-accent/35"
             />
             <div className="mt-auto pt-6">
               <button
@@ -661,7 +668,7 @@ export function OnboardingFlow({ onComplete }: Props) {
                   persistPending(payload);
                   setStep(6);
                 }}
-                className="w-full rounded-2xl bg-blue-500 py-3.5 text-[15px] font-semibold text-white shadow-md transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2"
+                className="w-full rounded-2xl bg-olie-accent py-3.5 text-[15px] font-semibold text-white shadow-md transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-olie-accent/50 focus:ring-offset-2 focus:ring-offset-[#f7faf9]"
               >
                 Continuar
               </button>
@@ -671,10 +678,10 @@ export function OnboardingFlow({ onComplete }: Props) {
 
         {step === 6 && (
           <div className="flex flex-1 flex-col gap-5">
-            <h1 className="text-xl font-semibold leading-snug text-slate-800">
+            <h1 className="text-xl font-semibold leading-snug text-olie-text">
               Quer que eu me lembre de tudo que você me contou? É só criar sua
               conta gratuita. Enviamos um link mágico por email — sem senha para
-              decorar 😌
+              decorar.
             </h1>
             <label htmlFor="onb-email" className="sr-only">
               Email
@@ -687,7 +694,7 @@ export function OnboardingFlow({ onComplete }: Props) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu@email.com"
-              className="w-full rounded-2xl border border-blue-200 bg-white px-4 py-3.5 text-[15px] text-slate-800 shadow-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-300/60"
+              className="w-full rounded-2xl border border-olie-border bg-white px-4 py-3.5 text-[15px] text-olie-text shadow-sm focus:border-olie-accent focus:outline-none focus:ring-2 focus:ring-olie-accent/35"
             />
             {authError && (
               <p className="text-sm text-red-800" role="alert">
@@ -699,14 +706,14 @@ export function OnboardingFlow({ onComplete }: Props) {
                 type="button"
                 disabled={authBusy}
                 onClick={() => void sendMagicLink()}
-                className="w-full rounded-2xl bg-blue-500 py-3.5 text-[15px] font-semibold text-white shadow-md transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 disabled:opacity-50"
+                className="w-full rounded-2xl bg-olie-accent py-3.5 text-[15px] font-semibold text-white shadow-md transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-olie-accent/50 focus:ring-offset-2 focus:ring-offset-[#f7faf9] disabled:opacity-50"
               >
                 {authBusy ? "Enviando…" : "Enviar link de acesso"}
               </button>
               <button
                 type="button"
                 onClick={finishWithoutAccount}
-                className="text-center text-[14px] font-medium text-slate-500 underline decoration-blue-200/80 underline-offset-2 transition hover:text-slate-700"
+                className="text-center text-[14px] font-medium text-olie-text-secondary underline decoration-olie-border underline-offset-2 transition hover:text-olie-text"
               >
                 Prefiro continuar sem salvar meu histórico
               </button>
@@ -717,11 +724,10 @@ export function OnboardingFlow({ onComplete }: Props) {
         {step === 7 && (
           <div className="flex flex-1 flex-col justify-center gap-8">
             <div className="space-y-3">
-              <h1 className="text-xl font-semibold leading-snug text-slate-800">
-                Te mandei um link no seu email. É só clicar nele para começar
-                ☺️.
+              <h1 className="text-xl font-semibold leading-snug text-olie-text">
+                Te mandei um link no seu email. É só clicar nele para começar.
               </h1>
-              <p className="text-[13px] leading-relaxed text-slate-500">
+              <p className="text-[13px] leading-relaxed text-olie-text-secondary">
                 Depois de abrir o link, volte a esta aba — vamos detectar seu
                 login automaticamente.
               </p>
@@ -740,7 +746,7 @@ export function OnboardingFlow({ onComplete }: Props) {
                   !EMAIL_RE.test(email.trim())
                 }
                 onClick={() => void resendMagicLink()}
-                className="text-[13px] font-medium text-blue-700 underline decoration-blue-200 underline-offset-2 transition hover:text-blue-900 disabled:cursor-not-allowed disabled:no-underline disabled:opacity-50"
+                className="text-[13px] font-medium text-olie-text underline decoration-olie-border underline-offset-2 transition hover:text-olie-text-secondary disabled:cursor-not-allowed disabled:no-underline disabled:opacity-50"
               >
                 {resendSecondsLeft > 0
                   ? `Reenviar email (${resendSecondsLeft}s)`

@@ -1,5 +1,7 @@
 "use client";
 
+import { BookOpen, History, Home, User } from "lucide-react";
+
 import Olie from "@/components/Olie";
 
 export type MainTabId = "home" | "conteudos" | "historico" | "perfil";
@@ -10,17 +12,19 @@ type Props = {
   onOliePress: () => void;
 };
 
+const iconClass = "h-[22px] w-[22px] shrink-0 stroke-[1.75]";
+
 export function BottomNav({ active, onChange, onOliePress }: Props) {
   const itemClass = (tab: MainTabId) =>
     `flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium transition ${
       active === tab
-        ? "text-blue-600"
-        : "text-slate-400 hover:text-slate-600"
+        ? "text-olie-text"
+        : "text-olie-muted hover:text-olie-text-secondary"
     }`;
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 border-t border-blue-100/80 bg-white/95 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 shadow-[0_-4px_24px_rgba(30,58,138,0.06)] backdrop-blur-md"
+      className="fixed bottom-0 left-0 right-0 z-40 border-t border-olie-border/90 bg-[#f7faf9]/95 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 shadow-[0_-4px_24px_rgba(26,26,46,0.05)] backdrop-blur-md"
       aria-label="Navegação principal"
     >
       <div className="mx-auto flex max-w-lg items-end justify-between px-1">
@@ -30,9 +34,7 @@ export function BottomNav({ active, onChange, onOliePress }: Props) {
           onClick={() => onChange("home")}
           aria-current={active === "home" ? "page" : undefined}
         >
-          <span className="text-lg leading-none" aria-hidden>
-            🏠
-          </span>
+          <Home className={iconClass} aria-hidden stroke="currentColor" />
           Home
         </button>
 
@@ -42,9 +44,7 @@ export function BottomNav({ active, onChange, onOliePress }: Props) {
           onClick={() => onChange("conteudos")}
           aria-current={active === "conteudos" ? "page" : undefined}
         >
-          <span className="text-lg leading-none" aria-hidden>
-            📚
-          </span>
+          <BookOpen className={iconClass} aria-hidden stroke="currentColor" />
           Conteúdos
         </button>
 
@@ -52,12 +52,12 @@ export function BottomNav({ active, onChange, onOliePress }: Props) {
           <button
             type="button"
             onClick={onOliePress}
-            className="-mt-7 flex h-[3.35rem] w-[3.35rem] shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue-500 shadow-[0_6px_20px_rgba(37,99,235,0.45)] ring-4 ring-white transition hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-200 active:scale-[0.98]"
+            className="-mt-7 flex h-[3.35rem] w-[3.35rem] shrink-0 items-center justify-center overflow-hidden rounded-full bg-olie-accent shadow-[0_6px_20px_rgba(92,128,120,0.38)] ring-4 ring-[#f7faf9] transition hover:opacity-95 focus:outline-none focus:ring-4 focus:ring-olie-border/80 active:scale-[0.98]"
             aria-label="Estou em crise — falar com a Olie"
           >
             <Olie state="calm" size={48} className="rounded-full object-cover" />
           </button>
-          <span className="mt-1 text-[10px] font-semibold text-blue-600">
+          <span className="mt-1 text-[10px] font-semibold text-olie-text">
             Olie
           </span>
         </div>
@@ -68,9 +68,7 @@ export function BottomNav({ active, onChange, onOliePress }: Props) {
           onClick={() => onChange("historico")}
           aria-current={active === "historico" ? "page" : undefined}
         >
-          <span className="text-lg leading-none" aria-hidden>
-            📊
-          </span>
+          <History className={iconClass} aria-hidden stroke="currentColor" />
           Histórico
         </button>
 
@@ -80,9 +78,7 @@ export function BottomNav({ active, onChange, onOliePress }: Props) {
           onClick={() => onChange("perfil")}
           aria-current={active === "perfil" ? "page" : undefined}
         >
-          <span className="text-lg leading-none" aria-hidden>
-            👤
-          </span>
+          <User className={iconClass} aria-hidden stroke="currentColor" />
           Perfil
         </button>
       </div>
